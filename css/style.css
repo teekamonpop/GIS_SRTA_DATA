@@ -1,0 +1,161 @@
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* MAP */
+#map {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 1;
+}
+
+/* แก้ Leaflet tile เรียงมั่ว */
+.leaflet-container img {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+.leaflet-tile {
+  width: 256px !important;
+  height: 256px !important;
+}
+
+/* SEARCH */
+.search-box {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.search-box input {
+  width: 320px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* TABLE */
+#tableContainer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 220px;
+  background: white;
+  z-index: 9999;
+  overflow: auto;
+  border-top: 2px solid #ccc;
+  display: none;
+}
+
+#attributeTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+#attributeTable th {
+  background: #f2f2f2;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+#attributeTable th,
+#attributeTable td {
+  border: 1px solid #ddd;
+  padding: 6px;
+  white-space: nowrap;
+}
+
+#attributeTable tr:hover {
+  background: #ffe082;
+  cursor: pointer;
+}
+
+/* ====================
+DRAW TOOLTIP
+==================== */
+
+.leaflet-draw-tooltip {
+  background: rgba(20, 30, 40, 0.88) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+}
+
+.leaflet-draw-tooltip:before {
+  border-right-color: rgba(20, 30, 40, 0.88) !important;
+}
+
+.leaflet-draw-tooltip-subtext {
+  color: #d9ecff !important;
+}
+
+/* ====================
+DRAW VERTEX
+==================== */
+
+.leaflet-editing-icon {
+  width: 10px !important;
+  height: 10px !important;
+  margin-left: -5px !important;
+  margin-top: -5px !important;
+  border-radius: 50% !important;
+  background: #ffffff !important;
+  border: 2px solid #1976d2 !important;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.45) !important;
+}
+/* ====================
+DRAW TOOL BEAUTY STYLE
+==================== */
+
+.leaflet-draw-tooltip {
+  background: rgba(15, 23, 42, 0.9) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
+}
+
+.leaflet-draw-tooltip:before {
+  border-right-color: rgba(15, 23, 42, 0.9) !important;
+}
+
+.leaflet-draw-tooltip-subtext {
+  color: #cfe8ff !important;
+}
+
+/* จุดตอนวาด ไม่เอาสี่เหลี่ยมขาว */
+.leaflet-editing-icon {
+  width: 12px !important;
+  height: 12px !important;
+  margin-left: -6px !important;
+  margin-top: -6px !important;
+  border-radius: 50% !important;
+  background: #ff9800 !important;
+  border: 3px solid #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
+}
