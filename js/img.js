@@ -1,0 +1,1 @@
+const logoPath = './img/SRT.png';

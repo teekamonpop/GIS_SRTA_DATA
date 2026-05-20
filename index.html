@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>Web GIS</title>
+
+  <!-- LEAFLET CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <!-- LEAFLET DRAW CSS -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
+  />
+
+  <!-- YOUR CSS -->
+  <link
+    rel="stylesheet"
+    href="./css/style.css"
+  />
+</head>
+
+<body>
+
+  <!-- TOP RIGHT TOOLS -->
+  <div class="top-right-tools">
+
+    <button id="export-shp" type="button">
+      Export SHP
+    </button>
+
+    <button id="export-kml" type="button">
+      Export KML
+    </button>
+
+    <button id="export-kmz" type="button">
+      Export KMZ
+    </button>
+
+    <button id="export-pdf" type="button">
+      Export PDF
+    </button>
+
+    <button id="show-attribute-table" type="button">
+      Table
+    </button>
+
+    <button id="clear-drawings" type="button">
+    Clear
+    </button>
+
+  </div>
+
+  <!-- MAP -->
+  <div id="map"></div>
+
+  <!-- ATTRIBUTE TABLE -->
+  <div id="attribute-table" class="attribute-table">
+
+    <div class="attribute-header">
+
+      <b>ตารางข้อมูลแปลง</b>
+
+      <button
+        id="close-attribute-table"
+        type="button"
+      >
+        ×
+      </button>
+
+    </div>
+
+    <table>
+
+      <thead>
+
+        <tr>
+          <th>ชื่อแปลง</th>
+          <th>ผู้ขอเช่า</th>
+          <th>ขนาดพื้นที่</th>
+          <th>แก้ไข</th>
+        </tr>
+
+      </thead>
+
+      <tbody id="attribute-table-body"></tbody>
+
+    </table>
+
+  </div>
+
+  <!-- SEARCH BOX -->
+  <div class="search-box">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="ค้นหาสถานที่ แล้วกด Enter"
+    />
+  </div>
+
+  <!-- LEAFLET JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- toGeoJSON -->
+  <script src="https://cdn.jsdelivr.net/npm/@tmcw/togeojson@5.8.1/dist/togeojson.umd.js"></script>
+
+  <!-- LEAFLET DRAW -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+  <!-- JSZIP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <!-- SHP READ -->
+  <script src="https://unpkg.com/shpjs@latest/dist/shp.min.js"></script>
+
+  <!-- SHP WRITE -->
+  <script src="https://unpkg.com/@nickrsan/shp-write@latest/shpwrite.js"></script>
+
+  <!-- TOKML -->
+  <script src="https://unpkg.com/tokml/tokml.js"></script>
+
+  <!-- TURF -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
+
+  <!-- HTML2CANVAS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- LEAFLET GEOMETRY UTIL -->
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-geometryutil@0.10.3/src/leaflet.geometryutil.js"></script>
+
+  <!-- LEAFLET SNAP -->
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-snap@0.0.4/leaflet.snap.js"></script>
+
+  <!-- JSPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- MAIN JS -->
+  <script type="module" src="./js/main.js"></script>
+
+</body>
+</html>
