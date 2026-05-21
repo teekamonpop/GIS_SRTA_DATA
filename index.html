@@ -2,7 +2,6 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-<th>เลขเอกสาร</th>
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
@@ -61,7 +60,6 @@
 
   <!-- TOP RIGHT TOOLS -->
   <div class="top-right-tools">
-    <div class="login-box">
   <input id="login-email" type="email" placeholder="Email" />
   <input id="login-password" type="password" placeholder="Password" />
 
@@ -98,6 +96,10 @@
     Clear
     </button>
 
+    <button id="logout-button" type="button">
+    Logout
+    </button>
+
   </div>
 
   <!-- MAP -->
@@ -124,11 +126,12 @@
       <thead>
 
         <tr>
-          <th>ชื่อแปลง</th>
-          <th>ผู้ขอเช่า</th>
-          <th>ขนาดพื้นที่</th>
-          <th>แก้ไข</th>
-        </tr>
+        <th>ชื่อแปลง</th>
+        <th>ผู้ขอเช่า</th>
+        <th>เลขเอกสาร</th>
+        <th>ขนาดพื้นที่</th>
+        <th>แก้ไข</th>
+</tr>
 
       </thead>
 
@@ -184,8 +187,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <!-- Login Page --> 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- MAIN JS -->
