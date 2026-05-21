@@ -21,6 +21,26 @@ import {
 } from './layers.js';
 
 // ====================
+// LOGIN CHECK
+// ====================
+
+async function requireLogin() {
+
+  const { data } =
+    await supabase.auth.getSession();
+
+  if (!data.session) {
+
+    window.location.href =
+      './login.html';
+
+  }
+
+}
+
+requireLogin();
+
+// ====================
 // CREATE MAP
 // ====================
 
@@ -579,6 +599,10 @@ function snapLayerToExisting(layer, snapDistancePx = 40) {
 map.on(
   L.Draw.Event.CREATED,
   function (event) {
+    if (!isLoggedIn) {
+  alert('กรุณา Login ก่อนแก้ไขข้อมูล');
+  return;
+}
     const layer = event.layer;
 
     if (
@@ -1299,3 +1323,125 @@ if (exportPdfButton) {
 updateAttributeTable();
 
 console.log('WEB GIS READY');
+
+// ====================
+// LOGIN SYSTEM
+// ====================
+
+let isLoggedIn = false;
+
+async function checkLoginStatus() {
+
+  const {
+    data
+  } = await supabase.auth.getSession();
+
+  isLoggedIn =
+    !!data.session;
+
+  updateLoginUI();
+
+}
+
+function updateLoginUI() {
+
+  const loginButton =
+    document.getElementById('login-button');
+
+  const logoutButton =
+    document.getElementById('logout-button');
+
+  const emailInput =
+    document.getElementById('login-email');
+
+  const passwordInput =
+    document.getElementById('login-password');
+
+  if (loginButton) {
+    loginButton.style.display =
+      isLoggedIn ? 'none' : 'inline-block';
+  }
+
+  if (logoutButton) {
+    logoutButton.style.display =
+      isLoggedIn ? 'inline-block' : 'none';
+  }
+
+  if (emailInput) {
+    emailInput.style.display =
+      isLoggedIn ? 'none' : 'inline-block';
+  }
+
+  if (passwordInput) {
+    passwordInput.style.display =
+      isLoggedIn ? 'none' : 'inline-block';
+  }
+
+  const editButtons =
+    document.querySelectorAll(
+      '#export-shp, #export-kml, #export-kmz, #export-pdf, #clear-drawings'
+    );
+
+  editButtons.forEach(function (button) {
+    button.style.display =
+      isLoggedIn ? 'inline-block' : 'none';
+  });
+
+}
+
+const loginButton =
+  document.getElementById('login-button');
+
+if (loginButton) {
+
+  loginButton.addEventListener('click', async function () {
+
+    const email =
+      document.getElementById('login-email').value;
+
+    const password =
+      document.getElementById('login-password').value;
+
+    const {
+      error
+    } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+    if (error) {
+      alert('Login ไม่สำเร็จ');
+      console.error(error);
+      return;
+    }
+
+    isLoggedIn = true;
+
+    updateLoginUI();
+
+    alert('Login สำเร็จ');
+
+  });
+
+}
+
+const logoutButton =
+  document.getElementById('logout-button');
+
+if (logoutButton) {
+
+  logoutButton.addEventListener('click', async function () {
+
+    await supabase.auth.signOut();
+
+    isLoggedIn = false;
+
+    updateLoginUI();
+
+    alert('Logout แล้ว');
+
+  });
+
+}
+
+checkLoginStatus();

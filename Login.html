@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Login | Web GIS</title>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #111827, #1f2937);
+    }
+
+    .login-card {
+      width: 360px;
+      background: white;
+      padding: 28px;
+      border-radius: 18px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+
+    .login-card h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .login-card p {
+      margin: 0 0 22px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .login-card input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+
+    .login-card button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: #111827;
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .login-card button:hover {
+      background: #000;
+    }
+
+    #login-message {
+      margin-top: 14px;
+      font-size: 13px;
+      color: red;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-card">
+    <h1>Web GIS Login</h1>
+    <p>เข้าสู่ระบบเพื่อจัดการข้อมูลแปลง</p>
+
+    <input
+      id="email"
+      type="email"
+      placeholder="Email"
+    />
+
+    <input
+      id="password"
+      type="password"
+      placeholder="Password"
+    />
+
+    <button id="login-button" type="button">
+      Login
+    </button>
+
+    <div id="login-message"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    const SUPABASE_URL =
+      'https://fuvnqxiwiniigabzaejg.supabase.co';
+
+const SUPABASE_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1dm5xeGl3aW5paWdhYnphZWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjMxNjEsImV4cCI6MjA5NDg5OTE2MX0.7AECH9EkMjGHFZYh6SIrpVo1ulWrf_SK5Ui-AYpCdNg';;
+
+    const supabaseClient =
+  window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+    const loginButton =
+      document.getElementById('login-button');
+
+    loginButton.addEventListener('click', async function () {
+
+      const email =
+        document.getElementById('email').value;
+
+      const password =
+        document.getElementById('password').value;
+
+      const message =
+        document.getElementById('login-message');
+
+      message.textContent = '';
+
+      const { error } =
+        await supabaseClient.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+
+      if (error) {
+        message.textContent =
+          'Login ไม่สำเร็จ กรุณาตรวจสอบ Email / Password';
+        return;
+      }
+
+      window.location.href =
+        './index.html';
+
+    });
+  </script>
+
+</body>
+</html>
