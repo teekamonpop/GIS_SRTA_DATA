@@ -1,3 +1,18 @@
+// ====================
+// SUPABASE
+// ====================
+
+const SUPABASE_URL =
+  'https://fuvnqxiwiniigabzaejg.supabase.co';
+
+const SUPABASE_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1dm5xeGl3aW5paWdhYnphZWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjMxNjEsImV4cCI6MjA5NDg5OTE2MX0.7AECH9EkMjGHFZYh6SIrpVo1ulWrf_SK5Ui-AYpCdNg';
+
+const supabase =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 import { CONFIG } from './config.js';
 
 import {
@@ -231,49 +246,127 @@ layerControl.addOverlay(
 // AUTO SAVE
 // ====================
 
-function saveDrawings() {
-  const geojson = drawnItems.toGeoJSON();
-
-  localStorage.setItem(
-    'webgis_drawings',
-    JSON.stringify(geojson)
-  );
-}
-
-function loadDrawings() {
-  const saved =
-    localStorage.getItem('webgis_drawings');
-
-  if (!saved) return;
+async function saveDrawings() {
 
   try {
-    const geojson =
-      JSON.parse(saved);
 
-    L.geoJSON(
-      geojson,
-      {
-        onEachFeature: function (feature, layer) {
-          if (feature.properties) {
-            layer.feature = {
-              type: 'Feature',
-              properties: feature.properties
-            };
-          }
+    await supabase
+      .from('parcels')
+      .delete()
+      .neq('id', 0);
 
-          drawnItems.addLayer(layer);
-          snapGuideLayers.addLayer(layer);
+    const features = [];
 
-          if (layer instanceof L.Polygon) {
-            bindAreaPopup(layer);
-          }
-        }
+    drawnItems.eachLayer(function (layer) {
+
+      if (!(layer instanceof L.Polygon)) return;
+
+      const geojson =
+        layer.toGeoJSON();
+
+      const props =
+        layer.feature &&
+        layer.feature.properties
+          ? layer.feature.properties
+          : {};
+
+      const area =
+        turf.area(geojson);
+
+      features.push({
+        name: props.name || '',
+        owner: props.owner || '',
+        note: props.note || '',
+        area_sqm: area,
+        geojson: geojson
+      });
+
+    });
+
+    if (features.length > 0) {
+
+      const { error } =
+        await supabase
+          .from('parcels')
+          .insert(features);
+
+      if (error) {
+        console.error(error);
       }
-    );
+
+    }
 
   } catch (error) {
-    console.error('LOAD DRAWINGS ERROR', error);
+
+    console.error(error);
+
   }
+
+}
+
+async function loadDrawings() {
+
+  try {
+
+    const {
+      data,
+      error
+    } = await supabase
+      .from('parcels')
+      .select('*');
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    drawnItems.clearLayers();
+    snapGuideLayers.clearLayers();
+
+    data.forEach(function (item) {
+
+      const layer =
+        L.geoJSON(
+          item.geojson,
+          {
+            onEachFeature: function (
+              feature,
+              layer
+            ) {
+
+              layer.feature = {
+                type: 'Feature',
+                properties: {
+                  name: item.name,
+                  owner: item.owner,
+                  note: item.note
+                }
+              };
+
+              drawnItems.addLayer(layer);
+
+              snapGuideLayers.addLayer(layer);
+
+              if (
+                layer instanceof L.Polygon
+              ) {
+                bindAreaPopup(layer);
+              }
+
+            }
+          }
+        );
+
+    });
+
+    updateAttributeTable();
+
+  } catch (error) {
+
+    console.error(error);
+
+  }
+
 }
 
 // ====================
