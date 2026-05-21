@@ -250,10 +250,22 @@ async function saveDrawings() {
 
   try {
 
-    await supabase
-      .from('parcels')
-      .delete()
-      .not('id', 'is', null);
+    const deleteResult =
+      await supabase
+        .from('parcels')
+        .delete()
+        .not('id', 'is', null);
+
+    if (deleteResult.error) {
+
+      console.error(
+        'DELETE SUPABASE ERROR:',
+        deleteResult.error
+      );
+
+      return;
+
+    }
 
     const features = [];
 
@@ -261,10 +273,12 @@ async function saveDrawings() {
 
       if (!(layer instanceof L.Polygon)) return;
 
-      const geojson = layer.toGeoJSON();
+      const geojson =
+        layer.toGeoJSON();
 
       const props =
-        layer.feature && layer.feature.properties
+        layer.feature &&
+        layer.feature.properties
           ? layer.feature.properties
           : {};
 
@@ -272,31 +286,45 @@ async function saveDrawings() {
         turf.area(geojson);
 
       features.push({
+
         name: props.name || '',
+
         owner: props.owner || '',
+
         note: props.note || '',
+
         area_sqm: area,
+
         geojson: geojson
+
       });
 
     });
 
-    if (features.length > 0) {
+    if (features.length === 0) {
+      return;
+    }
 
-      const { error } =
-        await supabase
-          .from('parcels')
-          .insert(features);
+    const insertResult =
+      await supabase
+        .from('parcels')
+        .insert(features);
 
-      if (error) {
-        console.error(error);
-      }
+    if (insertResult.error) {
+
+      console.error(
+        'INSERT SUPABASE ERROR:',
+        insertResult.error
+      );
 
     }
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      'SAVE DRAWINGS ERROR:',
+      error
+    );
 
   }
 
@@ -636,7 +664,9 @@ map.on(
     snapGuideLayers.clearLayers();
 
     drawnItems.eachLayer(function (layer) {
+
       snapGuideLayers.addLayer(layer);
+
     });
 
     await saveDrawings();
