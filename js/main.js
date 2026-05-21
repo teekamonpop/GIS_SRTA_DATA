@@ -285,7 +285,12 @@ async function saveDrawings() {
 
     drawnItems.eachLayer(function (layer) {
 
-      if (!(layer instanceof L.Polygon)) return;
+  if (
+    !(layer instanceof L.Polygon) &&
+    !(layer instanceof L.Rectangle)
+  ) {
+    return;
+  }
 
       const geojson =
         layer.toGeoJSON();
@@ -309,7 +314,15 @@ async function saveDrawings() {
 
     });
 
-    if (features.length === 0) return;
+    if (features.length === 0) {
+
+  console.warn(
+    'ไม่มี polygon สำหรับ save'
+  );
+
+  return;
+
+}
 
     const insertResult =
       await supabase
