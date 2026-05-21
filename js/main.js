@@ -253,7 +253,7 @@ async function saveDrawings() {
     await supabase
       .from('parcels')
       .delete()
-      .neq('id', 0);
+      .not('id', 'is', null);
 
     const features = [];
 
@@ -261,12 +261,10 @@ async function saveDrawings() {
 
       if (!(layer instanceof L.Polygon)) return;
 
-      const geojson =
-        layer.toGeoJSON();
+      const geojson = layer.toGeoJSON();
 
       const props =
-        layer.feature &&
-        layer.feature.properties
+        layer.feature && layer.feature.properties
           ? layer.feature.properties
           : {};
 
@@ -633,15 +631,18 @@ map.on(
 
 map.on(
   'draw:deleted',
-  function () {
+  async function () {
+
     snapGuideLayers.clearLayers();
 
     drawnItems.eachLayer(function (layer) {
       snapGuideLayers.addLayer(layer);
     });
 
-    saveDrawings();
+    await saveDrawings();
+
     updateAttributeTable();
+
   }
 );
 
