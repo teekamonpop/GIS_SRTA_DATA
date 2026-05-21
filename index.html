@@ -2,6 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
@@ -30,47 +31,41 @@
 
 <body>
 
+  <!-- PARCEL FORM -->
   <div id="parcel-form-modal" class="parcel-form-modal">
-  <div class="parcel-form-card">
-    <h3>ข้อมูลแปลงที่ดิน</h3>
+    <div class="parcel-form-card">
 
-    <label>ชื่อแปลง</label>
-    <input id="parcel-name" type="text" />
+      <h3>ข้อมูลแปลงที่ดิน</h3>
 
-    <label>ผู้ขอเช่า / สถานะ</label>
-    <input id="parcel-owner" type="text" />
+      <label>ชื่อแปลง</label>
+      <input id="parcel-name" type="text" />
 
-    <label>เลขเอกสาร</label>
-    <input id="parcel-docno" type="text" />
+      <label>ผู้ขอเช่า / สถานะ</label>
+      <input id="parcel-owner" type="text" />
 
-    <label>หมายเหตุ</label>
-    <textarea id="parcel-note"></textarea>
+      <label>เลขเอกสาร</label>
+      <input id="parcel-docno" type="text" />
 
-    <div class="parcel-form-actions">
-      <button id="parcel-cancel" type="button">
-        ยกเลิก
-      </button>
+      <label>หมายเหตุ</label>
+      <textarea id="parcel-note"></textarea>
 
-      <button id="parcel-save" type="button">
-        บันทึก
-      </button>
+      <div class="parcel-form-actions">
+
+        <button id="parcel-cancel" type="button">
+          ยกเลิก
+        </button>
+
+        <button id="parcel-save" type="button">
+          บันทึก
+        </button>
+
+      </div>
+
     </div>
   </div>
-</div>
 
   <!-- TOP RIGHT TOOLS -->
   <div class="top-right-tools">
-  <input id="login-email" type="email" placeholder="Email" />
-  <input id="login-password" type="password" placeholder="Password" />
-
-  <button id="login-button" type="button">
-    Login
-  </button>
-
-  <button id="logout-button" type="button" style="display:none;">
-    Logout
-  </button>
-  </div>
 
     <button id="export-shp" type="button">
       Export SHP
@@ -93,11 +88,11 @@
     </button>
 
     <button id="clear-drawings" type="button">
-    Clear
+      Clear
     </button>
 
     <button id="logout-button" type="button">
-    Logout
+      Logout
     </button>
 
   </div>
@@ -126,12 +121,12 @@
       <thead>
 
         <tr>
-        <th>ชื่อแปลง</th>
-        <th>ผู้ขอเช่า</th>
-        <th>เลขเอกสาร</th>
-        <th>ขนาดพื้นที่</th>
-        <th>แก้ไข</th>
-</tr>
+          <th>ชื่อแปลง</th>
+          <th>ผู้ขอเช่า</th>
+          <th>เลขเอกสาร</th>
+          <th>ขนาดพื้นที่</th>
+          <th>แก้ไข</th>
+        </tr>
 
       </thead>
 
@@ -186,7 +181,7 @@
   <!-- JSPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-  <!-- Login Page --> 
+  <!-- SUPABASE -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- MAIN JS -->

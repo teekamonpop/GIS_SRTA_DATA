@@ -1,74 +1,148 @@
-export function createMap(
-  CONFIG
-) {
+// ====================
+// CREATE MAP
+// ====================
 
-  // MAP
+export function createMap(CONFIG) {
 
   const map =
     L.map(
       'map',
       {
-        zoomControl: false
+        zoomControl: false,
+        zoomAnimation: true,
+        fadeAnimation: true,
+        markerZoomAnimation: true
       }
-    )
-    .setView(
+    ).setView(
       CONFIG.center,
       CONFIG.zoom
     );
 
-  // ZOOM
+
+  // ====================
+  // ZOOM CONTROL
+  // ====================
 
   L.control.zoom({
-    position:
-      'bottomleft'
+    position: 'topleft'
   }).addTo(map);
 
-  // OSM
 
-  const osm =
+  // ====================
+  // BASEMAP
+  // ====================
+
+  const openStreetMap =
     L.tileLayer(
       'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       {
         attribution:
-          '&copy; OpenStreetMap'
+          '&copy; OpenStreetMap',
+        maxZoom: 22
+      }
+    );
+
+  const googleMap =
+    L.tileLayer(
+      'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+      {
+        attribution:
+          'Google Map',
+        maxZoom: 22
+      }
+    );
+
+  const googleSatellite =
+    L.tileLayer(
+      'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+      {
+        attribution:
+          'Google Satellite',
+        maxZoom: 22
+      }
+    );
+
+  const googleHybrid =
+    L.tileLayer(
+      'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+      {
+        attribution:
+          'Google Hybrid',
+        maxZoom: 22
       }
     ).addTo(map);
 
-  // SATELLITE
-
-  const satellite =
+  const esriSatellite =
     L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
         attribution:
-          'Tiles &copy; Esri'
+          'Esri',
+        maxZoom: 22
       }
     );
 
+
+  // ====================
+  // BASEMAP CONTROL
+  // ====================
+
+  const baseMaps = {
+
+    'OpenStreetMap':
+      openStreetMap,
+
+    'Google Map':
+      googleMap,
+
+    'Google Satellite':
+      googleSatellite,
+
+    'Google Hybrid':
+      googleHybrid,
+
+    'Esri Satellite':
+      esriSatellite
+
+  };
+
+
+  // ====================
   // LAYER CONTROL
+  // ====================
 
   const layerControl =
     L.control.layers(
-
-      {
-        "OpenStreetMap":
-          osm,
-
-        "Satellite":
-          satellite
-      },
-
+      baseMaps,
       {},
-
       {
-        position:
-          'bottomright',
-
-        collapsed:
-          false
+        position: 'bottomright',
+        collapsed: false
       }
-
     ).addTo(map);
+
+
+  // ====================
+  // FIX MAP SIZE
+  // ====================
+
+  window.addEventListener(
+    'load',
+    function () {
+
+      map.invalidateSize();
+
+      setTimeout(function () {
+        map.invalidateSize();
+      }, 300);
+
+    }
+  );
+
+
+  // ====================
+  // RETURN
+  // ====================
 
   return {
 

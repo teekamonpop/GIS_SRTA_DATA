@@ -1,4 +1,7 @@
-<<<<<<< HEAD
+/* ====================
+RESET
+==================== */
+
 html,
 body {
   width: 100%;
@@ -6,22 +9,22 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  font-family: Arial, sans-serif;
 }
 
+
 /* ====================
-   MAP
+MAP
 ==================== */
 
 #map {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100vh;
   z-index: 1;
 }
 
-/* แก้ Leaflet tile เรียงมั่ว */
 .leaflet-container img {
   max-width: none !important;
   max-height: none !important;
@@ -32,33 +35,40 @@ body {
   height: 256px !important;
 }
 
+
 /* ====================
-   SEARCH
+SEARCH BOX
 ==================== */
 
 .search-box {
   position: absolute;
-  top: 10px;
+  top: 12px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
-  background: white;
+  background: #ffffff;
   padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
   pointer-events: auto;
 }
 
 .search-box input {
   width: 320px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   font-size: 14px;
+  outline: none;
 }
 
+.search-box input:focus {
+  border-color: #111827;
+}
+
+
 /* ====================
-   TOP RIGHT TOOLS
+TOP RIGHT TOOLS
 ==================== */
 
 .top-right-tools {
@@ -67,6 +77,7 @@ body {
   right: 15px;
   z-index: 9999;
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   pointer-events: none;
 }
@@ -74,34 +85,36 @@ body {
 .top-right-tools button {
   pointer-events: auto;
   background: #ffffff;
+  color: #111827;
   border: none;
   padding: 10px 14px;
   border-radius: 10px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  box-shadow: 0 3px 12px rgba(0,0,0,0.16);
 }
 
 .top-right-tools button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(0,0,0,0.22);
 }
 
+
 /* ====================
-   ATTRIBUTE TABLE
+ATTRIBUTE TABLE
 ==================== */
 
 .attribute-table {
   position: absolute;
   left: 15px;
   bottom: 15px;
-  width: 520px;
+  width: 620px;
   max-width: calc(100% - 30px);
-  max-height: 220px;
+  max-height: 260px;
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.2);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.25);
   z-index: 9999;
   overflow: auto;
   display: none;
@@ -109,11 +122,28 @@ body {
 }
 
 .attribute-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #ffffff;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 14px;
-  border-bottom: 1px solid #eeeeee;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.attribute-header b {
+  font-size: 14px;
+}
+
+#close-attribute-table {
+  border: none;
+  background: #ef4444;
+  color: white;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
 }
 
 .attribute-table table {
@@ -131,323 +161,26 @@ body {
 }
 
 .attribute-table th {
-  background: #f5f5f5;
+  background: #f3f4f6;
   position: sticky;
-  top: 0;
+  top: 42px;
   z-index: 2;
 }
 
 .attribute-table button {
-  cursor: pointer;
-}
-
-/* ====================
-   OLD TABLE SUPPORT
-==================== */
-
-#tableContainer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 220px;
-  background: white;
-  z-index: 9999;
-  overflow: auto;
-  border-top: 2px solid #ccc;
-  display: none;
-}
-
-#attributeTable {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-#attributeTable th {
-  background: #f2f2f2;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-#attributeTable th,
-#attributeTable td {
-  border: 1px solid #ddd;
-  padding: 6px;
-  white-space: nowrap;
-}
-
-#attributeTable tr:hover {
-  background: #ffe082;
-  cursor: pointer;
-}
-
-/* ====================
-   DRAW TOOLTIP
-==================== */
-
-.leaflet-draw-tooltip {
-  background: rgba(15, 23, 42, 0.9) !important;
-  color: #ffffff !important;
-  border: none !important;
-  border-radius: 12px !important;
-  padding: 10px 14px !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
-}
-
-.leaflet-draw-tooltip:before {
-  border-right-color: rgba(15, 23, 42, 0.9) !important;
-}
-
-.leaflet-draw-tooltip-subtext {
-  color: #cfe8ff !important;
-}
-
-/* ====================
-   DRAW VERTEX
-==================== */
-
-.leaflet-editing-icon {
-  width: 12px !important;
-  height: 12px !important;
-  margin-left: -6px !important;
-  margin-top: -6px !important;
-  border-radius: 50% !important;
-  background: #ff9800 !important;
-  border: 3px solid #ffffff !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
-}
-/* ====================
-   FIX MAP FREEZE
-==================== */
-
-#tableContainer {
-  display: none !important;
-  pointer-events: none !important;
-}
-
-.attribute-table {
-  pointer-events: none !important;
-}
-
-.attribute-table table,
-.attribute-table button,
-.attribute-header {
-  pointer-events: auto !important;
-}
-
-.top-right-tools {
-  pointer-events: none !important;
-}
-
-.top-right-tools button {
-  pointer-events: auto !important;
-}
-
-.search-box {
-  pointer-events: none !important;
-}
-
-.search-box input {
-  pointer-events: auto !important;
-}
-
-.leaflet-container {
-  cursor: grab;
-=======
-html,
-body {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-/* MAP */
-#map {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  z-index: 1;
-}
-
-/* แก้ Leaflet tile เรียงมั่ว */
-.leaflet-container img {
-  max-width: none !important;
-  max-height: none !important;
-}
-
-.leaflet-tile {
-  width: 256px !important;
-  height: 256px !important;
-}
-
-/* SEARCH */
-.search-box {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-  background: white;
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.search-box input {
-  width: 320px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-/* TABLE */
-#tableContainer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 220px;
-  background: white;
-  z-index: 9999;
-  overflow: auto;
-  border-top: 2px solid #ccc;
-  display: none;
-}
-
-#attributeTable {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-#attributeTable th {
-  background: #f2f2f2;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-#attributeTable th,
-#attributeTable td {
-  border: 1px solid #ddd;
-  padding: 6px;
-  white-space: nowrap;
-}
-
-#attributeTable tr:hover {
-  background: #ffe082;
-  cursor: pointer;
-}
-
-/* ====================
-DRAW TOOLTIP
-==================== */
-
-.leaflet-draw-tooltip {
-  background: rgba(20, 30, 40, 0.88) !important;
-  color: #ffffff !important;
-  border: none !important;
-  border-radius: 10px !important;
-  padding: 10px 14px !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
-}
-
-.leaflet-draw-tooltip:before {
-  border-right-color: rgba(20, 30, 40, 0.88) !important;
-}
-
-.leaflet-draw-tooltip-subtext {
-  color: #d9ecff !important;
-}
-
-/* ====================
-DRAW VERTEX
-==================== */
-
-.leaflet-editing-icon {
-  width: 10px !important;
-  height: 10px !important;
-  margin-left: -5px !important;
-  margin-top: -5px !important;
-  border-radius: 50% !important;
-  background: #ffffff !important;
-  border: 2px solid #1976d2 !important;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.45) !important;
-}
-/* ====================
-DRAW TOOL BEAUTY STYLE
-==================== */
-
-.leaflet-draw-tooltip {
-  background: rgba(15, 23, 42, 0.9) !important;
-  color: #ffffff !important;
-  border: none !important;
-  border-radius: 12px !important;
-  padding: 10px 14px !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
-}
-
-.leaflet-draw-tooltip:before {
-  border-right-color: rgba(15, 23, 42, 0.9) !important;
-}
-
-.leaflet-draw-tooltip-subtext {
-  color: #cfe8ff !important;
-}
-
-/* จุดตอนวาด ไม่เอาสี่เหลี่ยมขาว */
-.leaflet-editing-icon {
-  width: 12px !important;
-  height: 12px !important;
-  margin-left: -6px !important;
-  margin-top: -6px !important;
-  border-radius: 50% !important;
-  background: #ff9800 !important;
-  border: 3px solid #ffffff !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
->>>>>>> 2c5598456c4b54655cdbd3393b542d127f232500
-}
-.login-box {
-  position: absolute;
-  top: 65px;
-  right: 15px;
-  z-index: 9999;
-  background: white;
-  padding: 10px;
-  border-radius: 10px;
-  display: flex;
-  gap: 6px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-}
-
-.login-box input {
-  width: 130px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
-.login-box button {
-  padding: 8px 12px;
   border: none;
-  border-radius: 6px;
-  background: #111;
+  background: #111827;
   color: white;
+  padding: 6px 10px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 12px;
 }
+
+
+/* ====================
+PARCEL FORM MODAL
+==================== */
 
 .parcel-form-modal {
   position: fixed;
@@ -460,42 +193,52 @@ DRAW TOOL BEAUTY STYLE
 }
 
 .parcel-form-card {
-  width: 380px;
+  width: 400px;
+  max-width: calc(100% - 32px);
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 22px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  box-shadow: 0 20px 70px rgba(0,0,0,0.38);
 }
 
 .parcel-form-card h3 {
   margin: 0 0 16px;
+  font-size: 20px;
+  color: #111827;
 }
 
 .parcel-form-card label {
   display: block;
   margin-top: 10px;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
+  color: #374151;
 }
 
 .parcel-form-card input,
 .parcel-form-card textarea {
   width: 100%;
   box-sizing: border-box;
-  padding: 10px;
-  border: 1px solid #dddddd;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
   border-radius: 10px;
   font-size: 14px;
+  outline: none;
+}
+
+.parcel-form-card input:focus,
+.parcel-form-card textarea:focus {
+  border-color: #111827;
 }
 
 .parcel-form-card textarea {
-  min-height: 70px;
+  min-height: 80px;
   resize: vertical;
 }
 
 .parcel-form-actions {
-  margin-top: 16px;
+  margin-top: 18px;
   display: flex;
   gap: 10px;
   justify-content: flex-end;
@@ -510,10 +253,110 @@ DRAW TOOL BEAUTY STYLE
 }
 
 #parcel-cancel {
-  background: #eeeeee;
+  background: #e5e7eb;
+  color: #111827;
 }
 
 #parcel-save {
   background: #111827;
-  color: white;
+  color: #ffffff;
+}
+
+
+/* ====================
+LEAFLET DRAW TOOLTIP
+==================== */
+
+.leaflet-draw-tooltip {
+  background: rgba(15, 23, 42, 0.92) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35) !important;
+}
+
+.leaflet-draw-tooltip:before {
+  border-right-color: rgba(15, 23, 42, 0.92) !important;
+}
+
+.leaflet-draw-tooltip-subtext {
+  color: #cfe8ff !important;
+}
+
+
+/* ====================
+DRAW VERTEX
+==================== */
+
+.leaflet-editing-icon {
+  width: 12px !important;
+  height: 12px !important;
+  margin-left: -6px !important;
+  margin-top: -6px !important;
+  border-radius: 50% !important;
+  background: #ff9800 !important;
+  border: 3px solid #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45) !important;
+}
+
+
+/* ====================
+LEAFLET POPUP
+==================== */
+
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+}
+
+.leaflet-popup-content {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+
+/* ====================
+FIX MAP INTERACTION
+==================== */
+
+.leaflet-container {
+  cursor: grab;
+}
+
+.leaflet-container:active {
+  cursor: grabbing;
+}
+
+
+/* ====================
+RESPONSIVE
+==================== */
+
+@media (max-width: 768px) {
+  .search-box {
+    top: 70px;
+    width: calc(100% - 30px);
+    box-sizing: border-box;
+  }
+
+  .search-box input {
+    width: 100%;
+  }
+
+  .top-right-tools {
+    left: 15px;
+    right: 15px;
+    justify-content: flex-end;
+  }
+
+  .top-right-tools button {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .attribute-table {
+    width: calc(100% - 30px);
+  }
 }

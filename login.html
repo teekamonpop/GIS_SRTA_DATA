@@ -2,7 +2,11 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
 
   <title>Login | Web GIS</title>
 
@@ -19,7 +23,7 @@
 
     .login-card {
       width: 360px;
-      background: white;
+      background: #ffffff;
       padding: 28px;
       border-radius: 18px;
       box-shadow: 0 20px 50px rgba(0,0,0,0.35);
@@ -28,11 +32,12 @@
     .login-card h1 {
       margin: 0 0 8px;
       font-size: 24px;
+      color: #111827;
     }
 
     .login-card p {
       margin: 0 0 22px;
-      color: #666;
+      color: #666666;
       font-size: 14px;
     }
 
@@ -41,9 +46,14 @@
       box-sizing: border-box;
       padding: 12px;
       margin-bottom: 12px;
-      border: 1px solid #ddd;
+      border: 1px solid #dddddd;
       border-radius: 10px;
       font-size: 14px;
+      outline: none;
+    }
+
+    .login-card input:focus {
+      border-color: #111827;
     }
 
     .login-card button {
@@ -52,14 +62,14 @@
       border: none;
       border-radius: 10px;
       background: #111827;
-      color: white;
+      color: #ffffff;
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
     }
 
     .login-card button:hover {
-      background: #000;
+      background: #000000;
     }
 
     #login-message {
@@ -73,8 +83,12 @@
 <body>
 
   <div class="login-card">
+
     <h1>Web GIS Login</h1>
-    <p>เข้าสู่ระบบเพื่อจัดการข้อมูลแปลง</p>
+
+    <p>
+      เข้าสู่ระบบเพื่อจัดการข้อมูลแปลง
+    </p>
 
     <input
       id="email"
@@ -88,60 +102,100 @@
       placeholder="Password"
     />
 
-    <button id="login-button" type="button">
+    <button
+      id="login-button"
+      type="button"
+    >
       Login
     </button>
 
     <div id="login-message"></div>
+
   </div>
 
+
+  <!-- SUPABASE -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+
   <script>
+    // ====================
+    // SUPABASE
+    // ====================
+
     const SUPABASE_URL =
       'https://fuvnqxiwiniigabzaejg.supabase.co';
 
-const SUPABASE_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1dm5xeGl3aW5paWdhYnphZWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjMxNjEsImV4cCI6MjA5NDg5OTE2MX0.7AECH9EkMjGHFZYh6SIrpVo1ulWrf_SK5Ui-AYpCdNg';;
+    const SUPABASE_KEY =
+      'eyJhbGciOiJIUzI1NiIsInRlSI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1dm5xeGl3aW5paWdhYnphZWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjMxNjEsImV4cCI6MjA5NDg5OTE2MX0.7AECH9EkMjGHFZYh6SIrpVo1ulWrf_SK5Ui-AYpCdNg';
 
     const supabaseClient =
-  window.supabase.createClient(
+      window.supabase.createClient(
         SUPABASE_URL,
         SUPABASE_KEY
       );
 
+
+    // ====================
+    // LOGIN
+    // ====================
+
     const loginButton =
-      document.getElementById('login-button');
+      document.getElementById(
+        'login-button'
+      );
 
-    loginButton.addEventListener('click', async function () {
+    loginButton.addEventListener(
+      'click',
+      async function () {
 
-      const email =
-        document.getElementById('email').value;
+        const email =
+          document
+            .getElementById('email')
+            .value
+            .trim();
 
-      const password =
-        document.getElementById('password').value;
+        const password =
+          document
+            .getElementById('password')
+            .value;
 
-      const message =
-        document.getElementById('login-message');
+        const message =
+          document.getElementById(
+            'login-message'
+          );
 
-      message.textContent = '';
+        message.textContent = '';
 
-      const { error } =
-        await supabaseClient.auth.signInWithPassword({
-          email: email,
-          password: password
-        });
+        if (!email || !password) {
 
-      if (error) {
-        message.textContent =
-          'Login ไม่สำเร็จ กรุณาตรวจสอบ Email / Password';
-        return;
+          message.textContent =
+            'กรุณากรอก Email และ Password';
+
+          return;
+
+        }
+
+        const { error } =
+          await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+          });
+
+        if (error) {
+
+          message.textContent =
+            'Login ไม่สำเร็จ กรุณาตรวจสอบ Email / Password';
+
+          return;
+
+        }
+
+        window.location.href =
+          './index.html';
+
       }
-
-      window.location.href =
-        './index.html';
-
-    });
+    );
   </script>
 
 </body>

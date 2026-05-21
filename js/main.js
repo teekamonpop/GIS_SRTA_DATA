@@ -277,14 +277,8 @@ async function saveDrawings() {
         .not('id', 'is', null);
 
     if (deleteResult.error) {
-
-      console.error(
-        'DELETE SUPABASE ERROR:',
-        deleteResult.error
-      );
-
+      console.error('DELETE SUPABASE ERROR:', deleteResult.error);
       return;
-
     }
 
     const features = [];
@@ -297,8 +291,7 @@ async function saveDrawings() {
         layer.toGeoJSON();
 
       const props =
-        layer.feature &&
-        layer.feature.properties
+        layer.feature && layer.feature.properties
           ? layer.feature.properties
           : {};
 
@@ -306,24 +299,17 @@ async function saveDrawings() {
         turf.area(geojson);
 
       features.push({
-
         name: props.name || '',
-
         owner: props.owner || '',
-
-        note: props.note || '', docno: props.docno || '',
-
+        note: props.note || '',
+        docno: props.docno || '',
         area_sqm: area,
-
         geojson: geojson
-
       });
 
     });
 
-    if (features.length === 0) {
-      return;
-    }
+    if (features.length === 0) return;
 
     const insertResult =
       await supabase
@@ -331,24 +317,20 @@ async function saveDrawings() {
         .insert(features);
 
     if (insertResult.error) {
-
-      console.error(
-        'INSERT SUPABASE ERROR:',
-        insertResult.error
-      );
-
+      console.error('INSERT SUPABASE ERROR:', insertResult.error);
     }
 
   } catch (error) {
 
-    console.error(
-      'SAVE DRAWINGS ERROR:',
-      error
-    );
+    console.error('SAVE DRAWINGS ERROR:', error);
 
   }
 
 }
+
+// ====================
+// LOAD DRAWINGS
+// ====================
 
 async function loadDrawings() {
 
@@ -362,19 +344,24 @@ async function loadDrawings() {
       .select('*');
 
     if (error) {
-      console.error(error);
+      console.error(
+        'LOAD DRAWINGS ERROR:',
+        error
+      );
       return;
     }
 
     drawnItems.clearLayers();
+
     snapGuideLayers.clearLayers();
 
     data.forEach(function (item) {
 
-      const layer =
+      const geojsonLayer =
         L.geoJSON(
           item.geojson,
           {
+
             onEachFeature: function (
               feature,
               layer
@@ -383,11 +370,12 @@ async function loadDrawings() {
               layer.feature = {
                 type: 'Feature',
                 properties: {
-  name: item.name,
-  owner: item.owner,
-  note: item.note,
-  docno: item.docno
-}
+                  name: item.name || '',
+                  owner: item.owner || '',
+                  note: item.note || '',
+                  docno: item.docno || ''
+                },
+                geometry: feature.geometry
               };
 
               drawnItems.addLayer(layer);
@@ -397,20 +385,45 @@ async function loadDrawings() {
               if (
                 layer instanceof L.Polygon
               ) {
+
                 bindAreaPopup(layer);
+
+                layer.on(
+                  'click',
+                  function () {
+
+                    bindAreaPopup(layer);
+
+                    setTimeout(function () {
+                      layer.openPopup();
+                    }, 100);
+
+                  }
+                );
+
               }
 
             }
+
           }
         );
+
+      geojsonLayer.addTo(map);
 
     });
 
     updateAttributeTable();
 
+    console.log(
+      'LOAD DRAWINGS SUCCESS'
+    );
+
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      'LOAD DRAWINGS CATCH ERROR:',
+      error
+    );
 
   }
 
@@ -508,7 +521,10 @@ function openParcelForm(layer) {
 // POPUP AREA
 // ====================
 
-function bindAreaPopup(layer) {
+function buildParcelPopupContent(
+  layer
+) {
+
   const geojson =
     layer.toGeoJSON();
 
@@ -518,12 +534,83 @@ function bindAreaPopup(layer) {
   const areaText =
     formatThaiArea(area);
 
-  layer.bindPopup(
-    '<b>พื้นที่ที่วาด</b><br>' +
-    areaText.squareMeters +
-    ' ตารางเมตร<br>' +
-    areaText.thaiArea
+  const props =
+    layer.feature &&
+    layer.feature.properties
+      ? layer.feature.properties
+      : {};
+
+  return (
+
+    '<div class="parcel-popup">' +
+
+      '<h3>' +
+      (props.name || 'พื้นที่แปลง') +
+      '</h3>' +
+
+      '<table>' +
+
+        '<tr>' +
+          '<td><b>เจ้าของ</b></td>' +
+          '<td>' +
+          (props.owner || '-') +
+          '</td>' +
+        '</tr>' +
+
+        '<tr>' +
+          '<td><b>เลขเอกสาร</b></td>' +
+          '<td>' +
+          (props.docno || '-') +
+          '</td>' +
+        '</tr>' +
+
+        '<tr>' +
+          '<td><b>พื้นที่</b></td>' +
+          '<td>' +
+          areaText.thaiArea +
+          '</td>' +
+        '</tr>' +
+
+        '<tr>' +
+          '<td><b>ตารางเมตร</b></td>' +
+          '<td>' +
+          areaText.squareMeters +
+          '</td>' +
+        '</tr>' +
+
+      '</table>' +
+
+      '<div style="margin-top:8px;">' +
+      (props.note || '-') +
+      '</div>' +
+
+    '</div>'
+
   );
+
+}
+
+
+// ====================
+// BIND POPUP
+// ====================
+
+function bindAreaPopup(
+  layer
+) {
+
+  const popupContent =
+    buildParcelPopupContent(
+      layer
+    );
+
+  layer.bindPopup(
+    popupContent,
+    {
+      maxWidth: 320
+    }
+  );
+
 }
 
 // ====================
@@ -649,65 +736,155 @@ function snapLayerToExisting(layer, snapDistancePx = 40) {
 map.on(
   L.Draw.Event.CREATED,
   async function (event) {
-    const layer = event.layer;
 
-    if (
-  event.layerType === 'polygon' ||
-  event.layerType === 'rectangle'
-  ) {
+    const layer =
+      event.layer;
 
-  const saved =
-    await openParcelForm(layer);
+    const layerType =
+      event.layerType;
 
-    if (!saved) {
-    return;
-  }
 
-}
+    // ====================
+    // ADD TO MAP
+    // ====================
 
     drawnItems.addLayer(layer);
 
-    if (event.layerType === 'polygon') {
-      snapLayerToExisting(layer, 100);
-    }
-
     snapGuideLayers.addLayer(layer);
 
-    if (event.layerType === 'marker') {
-      const latlng = layer.getLatLng();
 
-      const lat = latlng.lat.toFixed(6);
+    // ====================
+    // SNAP POLYGON
+    // ====================
 
-      const lng = latlng.lng.toFixed(6);
+    if (layerType === 'polygon') {
+
+      snapLayerToExisting(
+        layer,
+        100
+      );
+
+    }
+
+
+    // ====================
+    // PARCEL FORM
+    // ====================
+
+    if (
+      layerType === 'polygon' ||
+      layerType === 'rectangle'
+    ) {
+
+      const saved =
+        await openParcelForm(layer);
+
+      if (!saved) {
+
+        drawnItems.removeLayer(layer);
+
+        snapGuideLayers.removeLayer(layer);
+
+        return;
+
+      }
+
+    }
+
+    // ====================
+    // MARKER POPUP
+    // ====================
+
+    if (layerType === 'marker') {
+
+      const latlng =
+        layer.getLatLng();
 
       layer.bindPopup(
         '<b>พิกัดตำแหน่ง</b><br>' +
-        'Latitude: ' + lat +
+        'Latitude: ' +
+        latlng.lat.toFixed(6) +
         '<br>' +
-        'Longitude: ' + lng
-      ).openPopup();
+        'Longitude: ' +
+        latlng.lng.toFixed(6)
+      );
+
+      setTimeout(function () {
+
+        layer.openPopup();
+
+      }, 200);
+
     }
 
-    if (event.layerType === 'polyline') {
-      const latlngs =
-        layer.getLatLngs();
+
+    // ====================
+    // POLYLINE POPUP
+    // ====================
+
+    if (layerType === 'polyline') {
 
       const distance =
-        calculatePolylineDistance(latlngs);
+        calculatePolylineDistance(
+          layer.getLatLngs()
+        );
 
       layer.bindPopup(
         '<b>ระยะทางที่วัด</b><br>' +
         formatDistance(distance)
-      ).openPopup();
+      );
+
+      setTimeout(function () {
+
+        layer.openPopup();
+
+      }, 200);
+
     }
 
-    if (layer instanceof L.Polygon) {
+
+    // ====================
+    // POLYGON POPUP
+    // ====================
+
+    if (
+      layer instanceof L.Polygon
+    ) {
+
       bindAreaPopup(layer);
-      layer.openPopup();
+
+      layer.on(
+        'click',
+        function () {
+
+          bindAreaPopup(layer);
+
+          setTimeout(function () {
+
+            layer.openPopup();
+
+          }, 100);
+
+        }
+      );
+
+      setTimeout(function () {
+
+        layer.openPopup();
+
+      }, 300);
+
     }
 
-    saveDrawings();
+
+    // ====================
+    // SAVE + UPDATE
+    // ====================
+
+    await saveDrawings();
+
     updateAttributeTable();
+
   }
 );
 
@@ -729,8 +906,10 @@ map.on(
       }
     );
 
-    saveDrawings();
+    await saveDrawings();
+
     updateAttributeTable();
+
   }
 );
 
@@ -770,45 +949,55 @@ drawnItems.on(
 );
 
 // ====================
+// ENABLE MAP INTERACTION
+// ====================
+
+function enableMapInteraction() {
+
+  map.dragging.enable();
+
+  map.doubleClickZoom.enable();
+
+  map.scrollWheelZoom.enable();
+
+  map.boxZoom.enable();
+
+  map.keyboard.enable();
+
+}
+
+// ====================
 // FIX MAP STUCK
 // ====================
 
 document.addEventListener(
   'keydown',
-  function (e) {
-    if (e.key === 'Escape') {
-      map.dragging.enable();
-      map.doubleClickZoom.enable();
-      map.scrollWheelZoom.enable();
-      map.boxZoom.enable();
-      map.keyboard.enable();
+  function (event) {
+
+    if (event.key === 'Escape') {
+
+      enableMapInteraction();
+
     }
+
   }
 );
 
-map.on('draw:drawstop', function () {
-  map.dragging.enable();
-  map.doubleClickZoom.enable();
-  map.scrollWheelZoom.enable();
-  map.boxZoom.enable();
-  map.keyboard.enable();
-});
 
-map.on('draw:editstop', function () {
-  map.dragging.enable();
-  map.doubleClickZoom.enable();
-  map.scrollWheelZoom.enable();
-  map.boxZoom.enable();
-  map.keyboard.enable();
-});
+map.on(
+  'draw:drawstop',
+  enableMapInteraction
+);
 
-map.on('draw:deletestop', function () {
-  map.dragging.enable();
-  map.doubleClickZoom.enable();
-  map.scrollWheelZoom.enable();
-  map.boxZoom.enable();
-  map.keyboard.enable();
-});
+map.on(
+  'draw:editstop',
+  enableMapInteraction
+);
+
+map.on(
+  'draw:deletestop',
+  enableMapInteraction
+);
 
 // ====================
 // SEARCH
@@ -816,129 +1005,236 @@ map.on('draw:deletestop', function () {
 
 let searchMarker = null;
 
-document
-  .getElementById('searchInput')
-  .addEventListener(
+const searchInput =
+  document.getElementById(
+    'searchInput'
+  );
+
+if (searchInput) {
+
+  searchInput.addEventListener(
     'keydown',
-    async function (e) {
-      if (e.key !== 'Enter') return;
+    async function (event) {
+
+      if (event.key !== 'Enter') {
+        return;
+      }
 
       const keyword =
-        e.target.value.trim();
+        event.target.value
+          .trim()
+          .toLowerCase();
 
-      if (!keyword) return;
+      if (!keyword) {
+        return;
+      }
+
+
+      // ====================
+      // SEARCH IN MAP LAYERS
+      // ====================
 
       let foundLayer = null;
 
       for (const layer of searchableLayers) {
+
         if (
           !layer.feature ||
           !layer.feature.properties
-        ) continue;
+        ) {
+          continue;
+        }
 
         const props =
           layer.feature.properties;
 
         for (const key in props) {
+
           const value =
-            String(props[key]).toLowerCase();
+            String(props[key])
+              .toLowerCase();
 
           if (
-            value.includes(
-              keyword.toLowerCase()
-            )
+            value.includes(keyword)
           ) {
+
             foundLayer = layer;
+
             break;
+
           }
+
         }
 
-        if (foundLayer) break;
+        if (foundLayer) {
+          break;
+        }
+
       }
 
+
+      // ====================
+      // FOUND IN MAP
+      // ====================
+
       if (foundLayer) {
-        if (foundLayer.getLatLng) {
+
+        if (
+          foundLayer.getLatLng
+        ) {
+
           map.setView(
             foundLayer.getLatLng(),
             18
           );
-        } else if (foundLayer.getBounds) {
+
+        }
+
+        else if (
+          foundLayer.getBounds
+        ) {
+
           map.fitBounds(
             foundLayer.getBounds()
           );
+
         }
 
-        foundLayer.openPopup();
+        setTimeout(function () {
+
+          foundLayer.openPopup();
+
+        }, 200);
 
         return;
+
       }
 
-      const response =
-        await fetch(
-          'https://nominatim.openstreetmap.org/search?format=json&q=' +
-          encodeURIComponent(keyword)
+      // ====================
+      // SEARCH FROM NOMINATIM
+      // ====================
+
+      try {
+
+        const response =
+          await fetch(
+            'https://nominatim.openstreetmap.org/search?format=json&q=' +
+            encodeURIComponent(keyword)
+          );
+
+        const results =
+          await response.json();
+
+        if (
+          !results ||
+          results.length === 0
+        ) {
+
+          alert(
+            'ไม่พบข้อมูล'
+          );
+
+          return;
+
+        }
+
+        const place =
+          results[0];
+
+        const lat =
+          parseFloat(place.lat);
+
+        const lon =
+          parseFloat(place.lon);
+
+        map.setView(
+          [lat, lon],
+          16
         );
 
-      const results =
-        await response.json();
+        if (searchMarker) {
 
-      if (results.length === 0) {
-        alert('ไม่พบข้อมูล');
-        return;
+          map.removeLayer(
+            searchMarker
+          );
+
+        }
+
+        searchMarker =
+          L.marker(
+            [lat, lon]
+          ).addTo(map);
+
+        searchMarker.bindPopup(
+          place.display_name
+        );
+
+        setTimeout(function () {
+
+          searchMarker.openPopup();
+
+        }, 200);
+
       }
 
-      const place = results[0];
+      catch (error) {
 
-      const lat = parseFloat(place.lat);
+        console.error(
+          'SEARCH ERROR:',
+          error
+        );
 
-      const lon = parseFloat(place.lon);
-
-      map.setView(
-        [lat, lon],
-        16
-      );
-
-      if (searchMarker) {
-        map.removeLayer(searchMarker);
       }
 
-      searchMarker =
-        L.marker([lat, lon]).addTo(map);
-
-      searchMarker
-        .bindPopup(place.display_name)
-        .openPopup();
     }
   );
+
+}
 
 // ====================
 // DOWNLOAD HELPER
 // ====================
 
-function downloadBlob(blob, filename) {
+function downloadBlob(
+  blob,
+  filename
+) {
+
   const url =
     URL.createObjectURL(blob);
 
   const link =
     document.createElement('a');
 
-  link.href = url;
-  link.download = filename;
+  link.href =
+    url;
 
-  document.body.appendChild(link);
+  link.download =
+    filename;
+
+  document.body.appendChild(
+    link
+  );
 
   link.click();
 
-  document.body.removeChild(link);
+  document.body.removeChild(
+    link
+  );
 
-  URL.revokeObjectURL(url);
+  URL.revokeObjectURL(
+    url
+  );
+
 }
+
 
 // ====================
 // GET DRAWN POLYGON GEOJSON
 // ====================
 
 function getDrawnPolygonGeoJSON() {
+
   const geojson =
     drawnItems.toGeoJSON();
 
@@ -946,24 +1242,40 @@ function getDrawnPolygonGeoJSON() {
     !geojson.features ||
     geojson.features.length === 0
   ) {
-    alert('กรุณาวาดแปลงก่อน Export');
+
+    alert(
+      'กรุณาวาดแปลงก่อน Export'
+    );
+
     return null;
+
   }
 
   const polygonFeatures =
-    geojson.features.filter(function (feature) {
-      return (
-        feature.geometry &&
-        (
-          feature.geometry.type === 'Polygon' ||
-          feature.geometry.type === 'MultiPolygon'
-        )
-      );
-    });
+    geojson.features.filter(
+      function (feature) {
 
-  if (polygonFeatures.length === 0) {
-    alert('Export ได้เฉพาะ Polygon หรือ Rectangle เท่านั้น');
+        return (
+          feature.geometry &&
+          (
+            feature.geometry.type === 'Polygon' ||
+            feature.geometry.type === 'MultiPolygon'
+          )
+        );
+
+      }
+    );
+
+  if (
+    polygonFeatures.length === 0
+  ) {
+
+    alert(
+      'Export ได้เฉพาะ Polygon หรือ Rectangle เท่านั้น'
+    );
+
     return null;
+
   }
 
   const exportGeojson = {
@@ -978,21 +1290,31 @@ function getDrawnPolygonGeoJSON() {
       coordinates: 2
     }
   );
+
 }
+
 
 // ====================
 // EXPORT SHP
 // ====================
 
 const exportShpButton =
-  document.getElementById('export-shp');
+  document.getElementById(
+    'export-shp'
+  );
 
 if (exportShpButton) {
-  exportShpButton.addEventListener('click', async function () {
+
+  exportShpButton.addEventListener(
+    'click',
+    function () {
+
       const geojson =
         getDrawnPolygonGeoJSON();
 
-      if (!geojson) return;
+      if (!geojson) {
+        return;
+      }
 
       shpwrite.download(
         geojson,
@@ -1003,30 +1325,46 @@ if (exportShpButton) {
           }
         }
       );
+
     }
   );
+
 }
+
 
 // ====================
 // EXPORT KML
 // ====================
 
 const exportKmlButton =
-  document.getElementById('export-kml');
+  document.getElementById(
+    'export-kml'
+  );
 
 if (exportKmlButton) {
+
   exportKmlButton.addEventListener(
     'click',
     function () {
-      if (typeof tokml === 'undefined') {
-        alert('ไม่พบ tokml กรุณาตรวจสอบ index.html');
+
+      if (
+        typeof tokml === 'undefined'
+      ) {
+
+        alert(
+          'ไม่พบ tokml กรุณาตรวจสอบ index.html'
+        );
+
         return;
+
       }
 
       const geojson =
         getDrawnPolygonGeoJSON();
 
-      if (!geojson) return;
+      if (!geojson) {
+        return;
+      }
 
       const kml =
         tokml(
@@ -1041,7 +1379,8 @@ if (exportKmlButton) {
         new Blob(
           [kml],
           {
-            type: 'application/vnd.google-earth.kml+xml;charset=utf-8'
+            type:
+              'application/vnd.google-earth.kml+xml;charset=utf-8'
           }
         );
 
@@ -1049,35 +1388,58 @@ if (exportKmlButton) {
         blob,
         'parcel.kml'
       );
+
     }
   );
+
 }
+
 
 // ====================
 // EXPORT KMZ
 // ====================
 
 const exportKmzButton =
-  document.getElementById('export-kmz');
+  document.getElementById(
+    'export-kmz'
+  );
 
 if (exportKmzButton) {
+
   exportKmzButton.addEventListener(
     'click',
     async function () {
-      if (typeof tokml === 'undefined') {
-        alert('ไม่พบ tokml กรุณาตรวจสอบ index.html');
+
+      if (
+        typeof tokml === 'undefined'
+      ) {
+
+        alert(
+          'ไม่พบ tokml กรุณาตรวจสอบ index.html'
+        );
+
         return;
+
       }
 
-      if (typeof JSZip === 'undefined') {
-        alert('ไม่พบ JSZip กรุณาตรวจสอบ index.html');
+      if (
+        typeof JSZip === 'undefined'
+      ) {
+
+        alert(
+          'ไม่พบ JSZip กรุณาตรวจสอบ index.html'
+        );
+
         return;
+
       }
 
       const geojson =
         getDrawnPolygonGeoJSON();
 
-      if (!geojson) return;
+      if (!geojson) {
+        return;
+      }
 
       const kml =
         tokml(
@@ -1097,17 +1459,21 @@ if (exportKmzButton) {
       );
 
       const kmzBlob =
-        await zip.generateAsync({
-          type: 'blob',
-          compression: 'DEFLATE'
-        });
+        await zip.generateAsync(
+          {
+            type: 'blob',
+            compression: 'DEFLATE'
+          }
+        );
 
       downloadBlob(
         kmzBlob,
         'parcel.kmz'
       );
+
     }
   );
+
 }
 
 // ====================
@@ -1115,101 +1481,208 @@ if (exportKmzButton) {
 // ====================
 
 function updateAttributeTable() {
-  const tableBody =
-    document.getElementById('attribute-table-body');
 
-  if (!tableBody) return;
+  const tableBody =
+    document.getElementById(
+      'attribute-table-body'
+    );
+
+  if (!tableBody) {
+    return;
+  }
 
   tableBody.innerHTML = '';
 
   let index = 1;
 
-  drawnItems.eachLayer(function (layer) {
-    if (!(layer instanceof L.Polygon)) return;
 
-    const props =
-      layer.feature && layer.feature.properties
-        ? layer.feature.properties
-        : {};
+  // ====================
+  // LOOP DRAWINGS
+  // ====================
 
-    const geojson =
-      layer.toGeoJSON();
+  drawnItems.eachLayer(
+    function (layer) {
 
-    const area =
-      turf.area(geojson);
+      if (
+        !(layer instanceof L.Polygon)
+      ) {
+        return;
+      }
 
-    const areaText =
-      formatThaiArea(area);
+      const props =
+        layer.feature &&
+        layer.feature.properties
+          ? layer.feature.properties
+          : {};
 
-    const row =
-      document.createElement('tr');
+      const geojson =
+        layer.toGeoJSON();
 
-    row.innerHTML =
-      '<td>' + (props.name || 'parcel ' + index) + '</td>' +
-      '<td>' + (props.owner || '-') + '</td>' +
-      '<td>' + (props.docno || '-') + '</td>' +
-      '<td>' + areaText.thaiArea + '</td>' +
-      '<td>' +
-      '<button data-action="zoom">Zoom</button> ' +
-      '<button data-action="edit">Edit</button>' +
-      '</td>';
+      const area =
+        turf.area(geojson);
 
-    row
-      .querySelector('[data-action="zoom"]')
-      .addEventListener('click', function () {
-        map.fitBounds(layer.getBounds());
+      const areaText =
+        formatThaiArea(area);
 
-        bindAreaPopup(layer);
 
-        layer.openPopup();
-      });
+      // ====================
+      // CREATE ROW
+      // ====================
 
-    row
-      .querySelector('[data-action="edit"]')
-      .addEventListener('click', async function () {
-        await openParcelForm(layer);
+      const row =
+        document.createElement('tr');
 
-        bindAreaPopup(layer);
+      row.innerHTML =
 
-        saveDrawings();
+        '<td>' +
+        (props.name || 'parcel ' + index) +
+        '</td>' +
 
-        updateAttributeTable();
-      });
+        '<td>' +
+        (props.owner || '-') +
+        '</td>' +
 
-    tableBody.appendChild(row);
+        '<td>' +
+        (props.docno || '-') +
+        '</td>' +
 
-    index++;
-  });
+        '<td>' +
+        areaText.thaiArea +
+        '</td>' +
+
+        '<td>' +
+
+        '<button class="table-btn zoom-btn">' +
+        'Zoom' +
+        '</button> ' +
+
+        '<button class="table-btn edit-btn">' +
+        'Edit' +
+        '</button>' +
+
+        '</td>';
+
+
+      // ====================
+      // ZOOM BUTTON
+      // ====================
+
+      row
+        .querySelector('.zoom-btn')
+        .addEventListener(
+          'click',
+          function () {
+
+            map.fitBounds(
+              layer.getBounds()
+            );
+
+            bindAreaPopup(layer);
+
+            setTimeout(function () {
+
+              layer.openPopup();
+
+            }, 200);
+
+          }
+        );
+
+
+      // ====================
+      // EDIT BUTTON
+      // ====================
+
+      row
+        .querySelector('.edit-btn')
+        .addEventListener(
+          'click',
+          async function () {
+
+            const saved =
+              await openParcelForm(layer);
+
+            if (!saved) {
+              return;
+            }
+
+            bindAreaPopup(layer);
+
+            await saveDrawings();
+
+            updateAttributeTable();
+
+          }
+        );
+
+
+      // ====================
+      // APPEND ROW
+      // ====================
+
+      tableBody.appendChild(row);
+
+      index++;
+
+    }
+  );
+
 }
 
+
+// ====================
+// SHOW ATTRIBUTE TABLE
+// ====================
+
 const showAttributeTableButton =
-  document.getElementById('show-attribute-table');
+  document.getElementById(
+    'show-attribute-table'
+  );
 
 if (showAttributeTableButton) {
+
   showAttributeTableButton.addEventListener(
     'click',
     function () {
+
       updateAttributeTable();
 
       document
-        .getElementById('attribute-table')
+        .getElementById(
+          'attribute-table'
+        )
         .style.display = 'block';
+
     }
   );
+
 }
 
+
+// ====================
+// CLOSE ATTRIBUTE TABLE
+// ====================
+
 const closeAttributeTableButton =
-  document.getElementById('close-attribute-table');
+  document.getElementById(
+    'close-attribute-table'
+  );
 
 if (closeAttributeTableButton) {
+
   closeAttributeTableButton.addEventListener(
     'click',
     function () {
+
       document
-        .getElementById('attribute-table')
+        .getElementById(
+          'attribute-table'
+        )
         .style.display = 'none';
+
     }
   );
+
 }
 
 // ====================
@@ -1217,25 +1690,59 @@ if (closeAttributeTableButton) {
 // ====================
 
 const clearButton =
-  document.getElementById('clear-drawings');
+  document.getElementById(
+    'clear-drawings'
+  );
 
 if (clearButton) {
+
   clearButton.addEventListener(
     'click',
-    function () {
+    async function () {
+
       const confirmDelete =
-        confirm('ลบแปลงทั้งหมด ?');
+        confirm(
+          'ต้องการลบแปลงทั้งหมดใช่หรือไม่ ?'
+        );
 
-      if (!confirmDelete) return;
+      if (!confirmDelete) {
+        return;
+      }
 
-     drawnItems.clearLayers();
+      drawnItems.clearLayers();
+
       snapGuideLayers.clearLayers();
 
-      saveDrawings();
+      const deleteResult =
+        await supabase
+          .from('parcels')
+          .delete()
+          .not('id', 'is', null);
+
+      if (deleteResult.error) {
+
+        console.error(
+          'CLEAR SUPABASE ERROR:',
+          deleteResult.error
+        );
+
+        alert(
+          'ลบข้อมูลไม่สำเร็จ'
+        );
+
+        return;
+
+      }
 
       updateAttributeTable();
+
+      alert(
+        'ลบแปลงทั้งหมดเรียบร้อยแล้ว'
+      );
+
     }
   );
+
 }
 
 // ====================
@@ -1243,19 +1750,30 @@ if (clearButton) {
 // ====================
 
 const exportPdfButton =
-  document.getElementById('export-pdf');
+  document.getElementById(
+    'export-pdf'
+  );
 
 if (exportPdfButton) {
+
   exportPdfButton.addEventListener(
     'click',
     async function () {
+
       const fileName =
         prompt(
           'ตั้งชื่อไฟล์ PDF:',
           'parcel_map'
         );
 
-      if (!fileName) return;
+      if (!fileName) {
+        return;
+      }
+
+
+      // ====================
+      // HIDE UI BEFORE EXPORT
+      // ====================
 
       const hideElements =
         document.querySelectorAll(
@@ -1263,28 +1781,57 @@ if (exportPdfButton) {
         );
 
       try {
-        hideElements.forEach(function (el) {
-          el.style.display = 'none';
-        });
+
+        hideElements.forEach(
+          function (element) {
+            element.style.display =
+              'none';
+          }
+        );
 
         map.invalidateSize();
 
-        drawnItems.eachLayer(function (layer) {
-          if (layer instanceof L.Polygon) {
-            bindAreaPopup(layer);
-          }
 
-          if (layer.redraw) {
-            layer.redraw();
-          }
-        });
+        // ====================
+        // REFRESH DRAWN LAYERS
+        // ====================
 
-        await new Promise(function (resolve) {
-          setTimeout(resolve, 800);
-        });
+        drawnItems.eachLayer(
+          function (layer) {
+
+            if (
+              layer instanceof L.Polygon
+            ) {
+              bindAreaPopup(layer);
+            }
+
+            if (layer.redraw) {
+              layer.redraw();
+            }
+
+          }
+        );
+
+
+        // ====================
+        // WAIT MAP RENDER
+        // ====================
+
+        await new Promise(
+          function (resolve) {
+            setTimeout(resolve, 900);
+          }
+        );
+
+
+        // ====================
+        // CAPTURE MAP
+        // ====================
 
         const mapElement =
-          document.getElementById('map');
+          document.getElementById(
+            'map'
+          );
 
         const canvas =
           await html2canvas(
@@ -1297,12 +1844,27 @@ if (exportPdfButton) {
             }
           );
 
-        hideElements.forEach(function (el) {
-          el.style.display = '';
-        });
+
+        // ====================
+        // SHOW UI AFTER CAPTURE
+        // ====================
+
+        hideElements.forEach(
+          function (element) {
+            element.style.display =
+              '';
+          }
+        );
+
+
+        // ====================
+        // CREATE PDF
+        // ====================
 
         const imageData =
-          canvas.toDataURL('image/png');
+          canvas.toDataURL(
+            'image/png'
+          );
 
         const { jsPDF } =
           window.jspdf;
@@ -1314,6 +1876,36 @@ if (exportPdfButton) {
             'a4'
           );
 
+
+        // ====================
+        // ADD LOGO
+        // ====================
+
+        try {
+
+          pdf.addImage(
+            './Logo.png',
+            'PNG',
+            12,
+            8,
+            38,
+            18
+          );
+
+        } catch (error) {
+
+          console.warn(
+            'โหลด logo ไม่สำเร็จ',
+            error
+          );
+
+        }
+
+
+        // ====================
+        // ADD MAP IMAGE
+        // ====================
+
         pdf.addImage(
           imageData,
           'PNG',
@@ -1323,30 +1915,18 @@ if (exportPdfButton) {
           165
         );
 
-        try {
-          const logoPath =
-          './Logo.png';
 
-          pdf.addImage(
-            logoPath,
-            'PNG',
-            12,
-            8,
-            38,
-            18
-          );
-        } catch (error) {
-          console.warn(
-            'โหลด logo ไม่สำเร็จ',
-            error
-          );
-        }
+        // ====================
+        // ADD EXPORT DATE
+        // ====================
 
         pdf.setFontSize(9);
 
         pdf.text(
           'วันที่ Export: ' +
-          new Date().toLocaleDateString('th-TH'),
+          new Date().toLocaleDateString(
+            'th-TH'
+          ),
           285,
           202,
           {
@@ -1354,38 +1934,65 @@ if (exportPdfButton) {
           }
         );
 
+
+        // ====================
+        // SAVE PDF
+        // ====================
+
         pdf.save(
           fileName + '.pdf'
         );
+
       } catch (error) {
-        hideElements.forEach(function (el) {
-          el.style.display = '';
-        });
 
-        console.error(error);
+        hideElements.forEach(
+          function (element) {
+            element.style.display =
+              '';
+          }
+        );
 
-        alert('Export PDF ไม่สำเร็จ');
+        console.error(
+          'EXPORT PDF ERROR:',
+          error
+        );
+
+        alert(
+          'Export PDF ไม่สำเร็จ'
+        );
+
       }
+
     }
   );
+
 }
 
 updateAttributeTable();
 
-console.log('WEB GIS READY');
+console.log(
+  'WEB GIS READY'
+);
 
-const logoutButton =
+// ====================
+// LOGOUT
+// ====================
+
+const logoutBtnGIS =
   document.getElementById('logout-button');
 
-if (logoutButton) {
+if (logoutBtnGIS) {
 
-  logoutButton.addEventListener('click', async function () {
+  logoutBtnGIS.addEventListener(
+    'click',
+    async function () {
 
-    await supabase.auth.signOut();
+      await supabase.auth.signOut();
 
-    window.location.href =
-      './login.html';
+      window.location.href =
+        './login.html';
 
-  });
+    }
+  );
 
 }
