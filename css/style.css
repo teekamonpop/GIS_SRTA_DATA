@@ -448,3 +448,72 @@ DRAW TOOL BEAUTY STYLE
   color: white;
   cursor: pointer;
 }
+
+.parcel-form-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 20000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.parcel-form-card {
+  width: 380px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+
+.parcel-form-card h3 {
+  margin: 0 0 16px;
+}
+
+.parcel-form-card label {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.parcel-form-card input,
+.parcel-form-card textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.parcel-form-card textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.parcel-form-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.parcel-form-actions button {
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+#parcel-cancel {
+  background: #eeeeee;
+}
+
+#parcel-save {
+  background: #111827;
+  color: white;
+}

@@ -1,3 +1,9 @@
+import { CONFIG } from './config.js';
+
+import {
+  loadKMLLayer,
+  loadShapefileLayer
+} from './layers.js';
 // ====================
 // SUPABASE
 // ====================
@@ -13,12 +19,6 @@ const supabase =
     SUPABASE_URL,
     SUPABASE_KEY
   );
-import { CONFIG } from './config.js';
-
-import {
-  loadKMLLayer,
-  loadShapefileLayer
-} from './layers.js';
 
 // ====================
 // LOGIN CHECK
@@ -311,7 +311,7 @@ async function saveDrawings() {
 
         owner: props.owner || '',
 
-        note: props.note || '',
+        note: props.note || '', docno: props.docno || '',
 
         area_sqm: area,
 
@@ -383,10 +383,11 @@ async function loadDrawings() {
               layer.feature = {
                 type: 'Feature',
                 properties: {
-                  name: item.name,
-                  owner: item.owner,
-                  note: item.note
-                }
+  name: item.name,
+  owner: item.owner,
+  note: item.note,
+  docno: item.docno
+}
               };
 
               drawnItems.addLayer(layer);
@@ -419,39 +420,88 @@ async function loadDrawings() {
 // PARCEL INFO
 // ====================
 
-function inputParcelInfo(layer) {
-  const oldProps =
-    layer.feature && layer.feature.properties
-      ? layer.feature.properties
-      : {};
+function openParcelForm(layer) {
 
-  const parcelName =
-    prompt(
-      'ชื่อแปลง:',
-      oldProps.name || 'parcel'
-    );
+  return new Promise(function (resolve) {
 
-  const owner =
-    prompt(
-      'ผู้ขอเช่า/สถานะ:',
-      oldProps.owner || ''
-    );
+    const modal =
+      document.getElementById('parcel-form-modal');
 
-  const note =
-    prompt(
-      'หมายเหตุ:',
-      oldProps.note || ''
-    );
+    const nameInput =
+      document.getElementById('parcel-name');
 
-  layer.feature = {
-    type: 'Feature',
-    properties: {
-      name: parcelName || 'parcel',
-      owner: owner || '',
-      note: note || ''
-    },
-    geometry: null
-  };
+    const ownerInput =
+      document.getElementById('parcel-owner');
+
+    const docnoInput =
+      document.getElementById('parcel-docno');
+
+    const noteInput =
+      document.getElementById('parcel-note');
+
+    const saveButton =
+      document.getElementById('parcel-save');
+
+    const cancelButton =
+      document.getElementById('parcel-cancel');
+
+    const oldProps =
+      layer.feature && layer.feature.properties
+        ? layer.feature.properties
+        : {};
+
+    nameInput.value =
+      oldProps.name || '';
+
+    ownerInput.value =
+      oldProps.owner || '';
+
+    docnoInput.value =
+      oldProps.docno || '';
+
+    noteInput.value =
+      oldProps.note || '';
+
+    modal.style.display =
+      'flex';
+
+    function closeForm(result) {
+
+      modal.style.display =
+        'none';
+
+      saveButton.onclick = null;
+      cancelButton.onclick = null;
+
+      resolve(result);
+
+    }
+
+    saveButton.onclick = function () {
+
+      layer.feature = {
+        type: 'Feature',
+        properties: {
+          name: nameInput.value || 'parcel',
+          owner: ownerInput.value || '',
+          docno: docnoInput.value || '',
+          note: noteInput.value || ''
+        },
+        geometry: null
+      };
+
+      closeForm(true);
+
+    };
+
+    cancelButton.onclick = function () {
+
+      closeForm(false);
+
+    };
+
+  });
+
 }
 
 // ====================
@@ -598,19 +648,22 @@ function snapLayerToExisting(layer, snapDistancePx = 40) {
 
 map.on(
   L.Draw.Event.CREATED,
-  function (event) {
-    if (!isLoggedIn) {
-  alert('กรุณา Login ก่อนแก้ไขข้อมูล');
-  return;
-}
+  async function (event) {
     const layer = event.layer;
 
     if (
-      event.layerType === 'polygon' ||
-      event.layerType === 'rectangle'
-    ) {
-      inputParcelInfo(layer);
-    }
+  event.layerType === 'polygon' ||
+  event.layerType === 'rectangle'
+  ) {
+
+  const saved =
+    await openParcelForm(layer);
+
+    if (!saved) {
+    return;
+  }
+
+}
 
     drawnItems.addLayer(layer);
 
@@ -664,7 +717,7 @@ map.on(
 
 map.on(
   'draw:edited',
-  function (event) {
+  async function (event) {
 
     event.layers.eachLayer(
       function (layer) {
@@ -935,9 +988,7 @@ const exportShpButton =
   document.getElementById('export-shp');
 
 if (exportShpButton) {
-  exportShpButton.addEventListener(
-    'click',
-    function () {
+  exportShpButton.addEventListener('click', async function () {
       const geojson =
         getDrawnPolygonGeoJSON();
 
@@ -1096,6 +1147,7 @@ function updateAttributeTable() {
     row.innerHTML =
       '<td>' + (props.name || 'parcel ' + index) + '</td>' +
       '<td>' + (props.owner || '-') + '</td>' +
+      '<td>' + (props.docno || '-') + '</td>' +
       '<td>' + areaText.thaiArea + '</td>' +
       '<td>' +
       '<button data-action="zoom">Zoom</button> ' +
@@ -1114,8 +1166,8 @@ function updateAttributeTable() {
 
     row
       .querySelector('[data-action="edit"]')
-      .addEventListener('click', function () {
-        inputParcelInfo(layer);
+      .addEventListener('click', async function () {
+        await openParcelForm(layer);
 
         bindAreaPopup(layer);
 
@@ -1176,12 +1228,10 @@ if (clearButton) {
 
       if (!confirmDelete) return;
 
-      drawnItems.clearLayers();
+     drawnItems.clearLayers();
       snapGuideLayers.clearLayers();
 
-      localStorage.removeItem(
-        'webgis_drawings'
-      );
+      saveDrawings();
 
       updateAttributeTable();
     }
@@ -1275,7 +1325,7 @@ if (exportPdfButton) {
 
         try {
           const logoPath =
-            './logo.png';
+          './Logo.png';
 
           pdf.addImage(
             logoPath,
@@ -1324,107 +1374,6 @@ updateAttributeTable();
 
 console.log('WEB GIS READY');
 
-// ====================
-// LOGIN SYSTEM
-// ====================
-
-let isLoggedIn = false;
-
-async function checkLoginStatus() {
-
-  const {
-    data
-  } = await supabase.auth.getSession();
-
-  isLoggedIn =
-    !!data.session;
-
-  updateLoginUI();
-
-}
-
-function updateLoginUI() {
-
-  const loginButton =
-    document.getElementById('login-button');
-
-  const logoutButton =
-    document.getElementById('logout-button');
-
-  const emailInput =
-    document.getElementById('login-email');
-
-  const passwordInput =
-    document.getElementById('login-password');
-
-  if (loginButton) {
-    loginButton.style.display =
-      isLoggedIn ? 'none' : 'inline-block';
-  }
-
-  if (logoutButton) {
-    logoutButton.style.display =
-      isLoggedIn ? 'inline-block' : 'none';
-  }
-
-  if (emailInput) {
-    emailInput.style.display =
-      isLoggedIn ? 'none' : 'inline-block';
-  }
-
-  if (passwordInput) {
-    passwordInput.style.display =
-      isLoggedIn ? 'none' : 'inline-block';
-  }
-
-  const editButtons =
-    document.querySelectorAll(
-      '#export-shp, #export-kml, #export-kmz, #export-pdf, #clear-drawings'
-    );
-
-  editButtons.forEach(function (button) {
-    button.style.display =
-      isLoggedIn ? 'inline-block' : 'none';
-  });
-
-}
-
-const loginButton =
-  document.getElementById('login-button');
-
-if (loginButton) {
-
-  loginButton.addEventListener('click', async function () {
-
-    const email =
-      document.getElementById('login-email').value;
-
-    const password =
-      document.getElementById('login-password').value;
-
-    const {
-      error
-    } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password
-    });
-
-    if (error) {
-      alert('Login ไม่สำเร็จ');
-      console.error(error);
-      return;
-    }
-
-    isLoggedIn = true;
-
-    updateLoginUI();
-
-    alert('Login สำเร็จ');
-
-  });
-
-}
-
 const logoutButton =
   document.getElementById('logout-button');
 
@@ -1434,14 +1383,9 @@ if (logoutButton) {
 
     await supabase.auth.signOut();
 
-    isLoggedIn = false;
-
-    updateLoginUI();
-
-    alert('Logout แล้ว');
+    window.location.href =
+      './login.html';
 
   });
 
 }
-
-checkLoginStatus();

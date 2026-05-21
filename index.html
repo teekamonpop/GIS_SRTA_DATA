@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-
+<th>เลขเอกสาร</th>
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
@@ -31,6 +31,34 @@
 
 <body>
 
+  <div id="parcel-form-modal" class="parcel-form-modal">
+  <div class="parcel-form-card">
+    <h3>ข้อมูลแปลงที่ดิน</h3>
+
+    <label>ชื่อแปลง</label>
+    <input id="parcel-name" type="text" />
+
+    <label>ผู้ขอเช่า / สถานะ</label>
+    <input id="parcel-owner" type="text" />
+
+    <label>เลขเอกสาร</label>
+    <input id="parcel-docno" type="text" />
+
+    <label>หมายเหตุ</label>
+    <textarea id="parcel-note"></textarea>
+
+    <div class="parcel-form-actions">
+      <button id="parcel-cancel" type="button">
+        ยกเลิก
+      </button>
+
+      <button id="parcel-save" type="button">
+        บันทึก
+      </button>
+    </div>
+  </div>
+</div>
+
   <!-- TOP RIGHT TOOLS -->
   <div class="top-right-tools">
     <div class="login-box">
@@ -44,7 +72,7 @@
   <button id="logout-button" type="button" style="display:none;">
     Logout
   </button>
-</div>
+  </div>
 
     <button id="export-shp" type="button">
       Export SHP
