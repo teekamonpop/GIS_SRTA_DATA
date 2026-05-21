@@ -2,6 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" href="data:,">
 
   <meta
     name="viewport"
@@ -84,7 +85,7 @@
 
   <div class="login-card">
 
-    <h1>Web GIS Login</h1>
+    <h1>ภูมิสารสนเทศ เพื่อการจัดการแปลงที่ดิน SRTA</h1>
 
     <p>
       เข้าสู่ระบบเพื่อจัดการข้อมูลแปลง
@@ -119,21 +120,22 @@
 
 
   <script>
-    // ====================
-    // SUPABASE
-    // ====================
+  
+// ====================
+// SUPABASE
+// ====================
 
-    const SUPABASE_URL =
-      'https://fuvnqxiwiniigabzaejg.supabase.co';
+const SUPABASE_URL =
+  'https://fuvnqxiwiniigabzaejg.supabase.co';
 
-    const SUPABASE_KEY =
-      'eyJhbGciOiJIUzI1NiIsInRlSI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1dm5xeGl3aW5paWdhYnphZWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjMxNjEsImV4cCI6MjA5NDg5OTE2MX0.7AECH9EkMjGHFZYh6SIrpVo1ulWrf_SK5Ui-AYpCdNg';
+const SUPABASE_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1dm5xeGl3aW5paWdhYnphZWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjMxNjEsImV4cCI6MjA5NDg5OTE2MX0.7AECH9EkMjGHFZYh6SIrpVo1ulWrf_SK5Ui-AYpCdNg';
 
-    const supabaseClient =
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-      );
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
 
     // ====================
@@ -183,13 +185,12 @@
           });
 
         if (error) {
-
+          console.error('LOGIN ERROR:', error);
           message.textContent =
-            'Login ไม่สำเร็จ กรุณาตรวจสอบ Email / Password';
+          error.message;
 
-          return;
-
-        }
+  return;
+}
 
         window.location.href =
           './index.html';

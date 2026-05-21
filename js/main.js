@@ -100,7 +100,7 @@ const googleSatellite = L.tileLayer(
     attribution: 'Google Satellite',
     maxZoom: 22
   }
-);
+).addTo(map);
 
 const googleHybrid = L.tileLayer(
   'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
@@ -108,7 +108,7 @@ const googleHybrid = L.tileLayer(
     attribution: 'Google Hybrid',
     maxZoom: 22
   }
-).addTo(map);
+);
 
 const esriSatellite = L.tileLayer(
   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',

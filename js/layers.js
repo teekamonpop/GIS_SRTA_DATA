@@ -242,7 +242,7 @@ export async function loadKMLLayer(
         }
       );
 
-    layer.addTo(map);
+    //layer.addTo(map);
 
     layerControl.addOverlay(
       layer,
@@ -331,7 +331,7 @@ export async function loadShapefileLayer(
         }
       );
 
-    layer.addTo(map);
+    //layer.addTo(map);
 
     layerControl.addOverlay(
       layer,
