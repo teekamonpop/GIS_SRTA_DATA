@@ -3,179 +3,422 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" href="data:,">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
-
-  <title>Login | Web GIS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | SRTA Asset GIS</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      height: 100vh;
+      min-height: 100vh;
+      font-family: Arial, Tahoma, sans-serif;
+      background: linear-gradient(135deg, #7a0000, #120000);
+      overflow: hidden;
+    }
+
+    .login-page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+
+.hero {
+  position: relative;
+  padding: 54px 70px;
+  color: white;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(120,0,0,0.94),
+      rgba(120,0,0,0.72),
+      rgba(20,0,0,0.35)
+    ),
+    url("https://images.unsplash.com/photo-1473445197457-7f5a217b6b1a?auto=format&fit=crop&w=1600&q=80");
+  background-size: cover;
+  background-position: center;
+}
+
+.hero::after {
+  display: none;
+}
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 620px;
+      padding-top: 130px;
+    }
+
+    .brand-logo {
+      position: relative;
+      z-index: 2;
+      width: 280px;
+      background: rgba(255,255,255,0.95);
+      padding: 14px 18px;
+      border-radius: 14px;
+      box-shadow: 0 14px 35px rgba(0,0,0,0.25);
+    }
+
+    .brand-logo img {
+      width: 100%;
+      display: block;
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: 42px;
+      line-height: 1.25;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .subtitle {
+      font-size: 25px;
+      line-height: 1.5;
+      margin-bottom: 26px;
+    }
+
+    .line {
+      width: 78px;
+      height: 4px;
+      background: #ffffff;
+      margin: 28px 0;
+      border-radius: 99px;
+    }
+
+    .desc {
+      font-size: 17px;
+      line-height: 1.8;
+      max-width: 520px;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .features {
+      position: absolute;
+      left: 70px;
+      bottom: 62px;
+      z-index: 2;
+      display: flex;
+      gap: 34px;
+    }
+
+    .feature {
+      width: 130px;
+      color: white;
+      text-align: center;
+      border-right: 1px solid rgba(255,255,255,0.35);
+      padding-right: 28px;
+    }
+
+    .feature:last-child {
+      border-right: none;
+    }
+
+    .feature-icon {
+      font-size: 34px;
+      margin-bottom: 8px;
+    }
+
+    .feature b {
+      display: block;
+      font-size: 17px;
+      margin-bottom: 4px;
+    }
+
+    .feature span {
+      font-size: 12px;
+      color: rgba(255,255,255,0.78);
+    }
+
+    .login-side {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #111827, #1f2937);
+      padding: 42px;
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,0.18), transparent 35%),
+        linear-gradient(135deg, #f9fafb, #ffffff);
     }
 
     .login-card {
-      width: 360px;
-      background: #ffffff;
-      padding: 28px;
-      border-radius: 18px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+      width: 100%;
+      max-width: 520px;
+      background: rgba(255,255,255,0.96);
+      padding: 54px 48px;
+      border-radius: 22px;
+      box-shadow: 0 30px 70px rgba(0,0,0,0.22);
     }
 
-    .login-card h1 {
-      margin: 0 0 8px;
-      font-size: 24px;
+    .card-logo {
+      width: 260px;
+      margin: 0 auto 28px;
+    }
+
+    .card-logo img {
+      width: 100%;
+      display: block;
+    }
+
+    .login-card h2 {
+      margin: 0;
+      text-align: center;
+      font-size: 34px;
       color: #111827;
     }
 
     .login-card p {
-      margin: 0 0 22px;
-      color: #666666;
-      font-size: 14px;
+      text-align: center;
+      margin: 10px 0 32px;
+      color: #6b7280;
+      font-size: 16px;
     }
 
-    .login-card input {
+    label {
+      display: block;
+      margin: 18px 0 8px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap span {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #6b7280;
+      font-size: 18px;
+    }
+
+    input {
       width: 100%;
-      box-sizing: border-box;
-      padding: 12px;
-      margin-bottom: 12px;
-      border: 1px solid #dddddd;
-      border-radius: 10px;
-      font-size: 14px;
+      height: 54px;
+      padding: 0 16px 0 48px;
+      border: 1px solid #d1d5db;
+      border-radius: 11px;
+      font-size: 16px;
       outline: none;
     }
 
-    .login-card input:focus {
-      border-color: #111827;
+    input:focus {
+      border-color: #8b0000;
+      box-shadow: 0 0 0 4px rgba(139,0,0,0.08);
     }
 
-    .login-card button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      background: #111827;
-      color: #ffffff;
-      font-size: 15px;
+    .row {
+      margin: 18px 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .remember {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      color: #374151;
+    }
+
+    .remember input {
+      width: 16px;
+      height: 16px;
+      accent-color: #8b0000;
+    }
+
+    .forgot {
+      color: #8b0000;
       font-weight: 700;
-      cursor: pointer;
+      text-decoration: none;
     }
 
-    .login-card button:hover {
-      background: #000000;
+    button {
+      width: 100%;
+      height: 56px;
+      border: none;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #8b0000, #b51212);
+      color: white;
+      font-size: 17px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 12px 24px rgba(139,0,0,0.28);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
     }
 
     #login-message {
-      margin-top: 14px;
-      font-size: 13px;
-      color: red;
+      margin-top: 16px;
+      font-size: 14px;
+      color: #b00000;
+      text-align: center;
+    }
+
+    .version {
+      margin-top: 26px;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .login-page {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        display: none;
+      }
+
+      body {
+        overflow: auto;
+      }
+
+      .login-side {
+        min-height: 100vh;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <div class="login-card">
+  <div class="login-page">
 
-    <h1>ภูมิสารสนเทศ เพื่อการจัดการแปลงที่ดิน SRTA</h1>
+    <section class="hero">
+      <div class="brand-logo">
+        <img src="./Logo.png" alt="SRT Asset Logo">
+      </div>
 
-    <p>
-      เข้าสู่ระบบเพื่อจัดการข้อมูลแปลง
-    </p>
+      <div class="hero-content">
+        <h1>ระบบแผนที่เพื่อการบริหารจัดการที่ดิน</h1>
+        <div class="subtitle">
+          SRTA Asset GIS Platform
+        </div>
 
-    <input
-      id="email"
-      type="email"
-      placeholder="Email"
-    />
+        <div class="line"></div>
 
-    <input
-      id="password"
-      type="password"
-      placeholder="Password"
-    />
+        <div class="desc">
+          เชื่อมโยงข้อมูลเชิงพื้นที่ เพื่อการวางแผน บริหารจัดการ
+          และใช้ประโยชน์ที่ดินของการรถไฟแห่งประเทศไทย
+        </div>
+      </div>
 
-    <button
-      id="login-button"
-      type="button"
-    >
-      Login
-    </button>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🛡️</div>
+          <b>ปลอดภัย</b>
+          <span>มั่นใจทุกการใช้งาน</span>
+        </div>
 
-    <div id="login-message"></div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <b>รวดเร็ว</b>
+          <span>เข้าถึงข้อมูลทันที</span>
+        </div>
+
+        <div class="feature">
+          <div class="feature-icon">🗂️</div>
+          <b>เชื่อมโยงข้อมูล</b>
+          <span>ครบถ้วนเป็นระบบ</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="login-side">
+      <div class="login-card">
+
+        <div class="card-logo">
+          <img src="./Logo.png" alt="SRT Asset Logo">
+        </div>
+
+        <h2>เข้าสู่ระบบ</h2>
+        <p>กรุณาเข้าสู่ระบบเพื่อใช้งาน</p>
+
+        <label>ชื่อผู้ใช้</label>
+        <div class="input-wrap">
+          <span>👤</span>
+          <input id="email" type="email" placeholder="กรอกอีเมลผู้ใช้" />
+        </div>
+
+        <label>รหัสผ่าน</label>
+        <div class="input-wrap">
+          <span>🔒</span>
+          <input id="password" type="password" placeholder="กรอกรหัสผ่าน" />
+        </div>
+
+        <div class="row">
+          <label class="remember">
+            <input type="checkbox" checked>
+            จดจำการเข้าสู่ระบบ
+          </label>
+
+          <a class="forgot" href="#">ลืมรหัสผ่าน?</a>
+        </div>
+
+        <button id="login-button" type="button">
+          เข้าสู่ระบบ
+        </button>
+
+        <div id="login-message"></div>
+
+        <div class="version">
+          SRTA Asset GIS Version 1.0
+        </div>
+
+      </div>
+    </section>
 
   </div>
 
-
-  <!-- SUPABASE -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-
   <script>
-  
-// ====================
-// SUPABASE
-// ====================
-
-const SUPABASE_URL =
-  'https://fuvnqxiwiniigabzaejg.supabase.co';
+    const SUPABASE_URL =
+      'https://fuvnqxiwiniigabzaejg.supabase.co';
 
 const SUPABASE_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1dm5xeGl3aW5paWdhYnphZWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjMxNjEsImV4cCI6MjA5NDg5OTE2MX0.7AECH9EkMjGHFZYh6SIrpVo1ulWrf_SK5Ui-AYpCdNg';
 
-const supabaseClient =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
 
-
-    // ====================
-    // LOGIN
-    // ====================
+    const supabaseClient =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
 
     const loginButton =
-      document.getElementById(
-        'login-button'
-      );
+      document.getElementById('login-button');
 
     loginButton.addEventListener(
       'click',
       async function () {
 
         const email =
-          document
-            .getElementById('email')
-            .value
-            .trim();
+          document.getElementById('email').value.trim();
 
         const password =
-          document
-            .getElementById('password')
-            .value;
+          document.getElementById('password').value;
 
         const message =
-          document.getElementById(
-            'login-message'
-          );
+          document.getElementById('login-message');
 
         message.textContent = '';
 
         if (!email || !password) {
-
           message.textContent =
             'กรุณากรอก Email และ Password';
-
           return;
-
         }
 
         const { error } =
@@ -185,16 +428,11 @@ const supabaseClient =
           });
 
         if (error) {
-          console.error('LOGIN ERROR:', error);
-          message.textContent =
-          error.message;
+          message.textContent = error.message;
+          return;
+        }
 
-  return;
-}
-
-        window.location.href =
-          './index.html';
-
+        window.location.href = './index.html';
       }
     );
   </script>

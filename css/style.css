@@ -62,10 +62,6 @@ SEARCH BOX
   outline: none;
 }
 
-.search-box input:focus {
-  border-color: #111827;
-}
-
 
 /* ====================
 TOP RIGHT TOOLS
@@ -95,9 +91,9 @@ TOP RIGHT TOOLS
   box-shadow: 0 3px 12px rgba(0,0,0,0.16);
 }
 
-.top-right-tools button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 5px 18px rgba(0,0,0,0.22);
+#locate-button {
+  background: #2563eb;
+  color: #ffffff;
 }
 
 
@@ -133,10 +129,6 @@ ATTRIBUTE TABLE
   border-bottom: 1px solid #e5e7eb;
 }
 
-.attribute-header b {
-  font-size: 14px;
-}
-
 #close-attribute-table {
   border: none;
   background: #ef4444;
@@ -162,19 +154,6 @@ ATTRIBUTE TABLE
 
 .attribute-table th {
   background: #f3f4f6;
-  position: sticky;
-  top: 42px;
-  z-index: 2;
-}
-
-.attribute-table button {
-  border: none;
-  background: #111827;
-  color: white;
-  padding: 6px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 12px;
 }
 
 
@@ -227,11 +206,6 @@ PARCEL FORM MODAL
   outline: none;
 }
 
-.parcel-form-card input:focus,
-.parcel-form-card textarea:focus {
-  border-color: #111827;
-}
-
 .parcel-form-card textarea {
   min-height: 80px;
   resize: vertical;
@@ -264,8 +238,20 @@ PARCEL FORM MODAL
 
 
 /* ====================
-LEAFLET DRAW TOOLTIP
+LEAFLET
 ==================== */
+
+.leaflet-control-layers {
+  display: none !important;
+}
+
+.leaflet-container {
+  cursor: grab;
+}
+
+.leaflet-container:active {
+  cursor: grabbing;
+}
 
 .leaflet-draw-tooltip {
   background: rgba(15, 23, 42, 0.92) !important;
@@ -274,22 +260,8 @@ LEAFLET DRAW TOOLTIP
   border-radius: 12px !important;
   padding: 10px 14px !important;
   font-size: 14px !important;
-  font-weight: 500 !important;
   box-shadow: 0 6px 18px rgba(0,0,0,0.35) !important;
 }
-
-.leaflet-draw-tooltip:before {
-  border-right-color: rgba(15, 23, 42, 0.92) !important;
-}
-
-.leaflet-draw-tooltip-subtext {
-  color: #cfe8ff !important;
-}
-
-
-/* ====================
-DRAW VERTEX
-==================== */
 
 .leaflet-editing-icon {
   width: 12px !important;
@@ -299,13 +271,7 @@ DRAW VERTEX
   border-radius: 50% !important;
   background: #ff9800 !important;
   border: 3px solid #ffffff !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.45) !important;
 }
-
-
-/* ====================
-LEAFLET POPUP
-==================== */
 
 .leaflet-popup-content-wrapper {
   border-radius: 12px;
@@ -318,15 +284,152 @@ LEAFLET POPUP
 
 
 /* ====================
-FIX MAP INTERACTION
+CUSTOM LAYER PANEL
 ==================== */
 
-.leaflet-container {
-  cursor: grab;
+#layerToggle {
+  position: absolute;
+  right: 26px;
+  bottom: 80px;
+  width: 58px;
+  height: 58px;
+  border: none;
+  border-radius: 50%;
+  background: #8b0000;
+  color: white;
+  font-size: 25px;
+  z-index: 99999;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(0,0,0,.35);
 }
 
-.leaflet-container:active {
-  cursor: grabbing;
+#layerPanel {
+  position: absolute;
+  top: 95px;
+  right: 24px;
+  width: 320px;
+  max-height: 78vh;
+  background: #ffffff;
+  border-radius: 18px;
+  overflow: hidden;
+  z-index: 99998;
+  box-shadow: 0 18px 45px rgba(0,0,0,.35);
+}
+
+#layerPanel.closed {
+  display: none;
+}
+
+.layer-header {
+  height: 74px;
+  background: #8b0000;
+  color: white;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.layer-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.layer-icon {
+  font-size: 23px;
+}
+
+.layer-name {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.layer-subtitle {
+  font-size: 11px;
+  line-height: 1.2;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+#closeLayer {
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.layer-body {
+  padding: 18px;
+  max-height: calc(78vh - 74px);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.layer-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.layer-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.layer-body::-webkit-scrollbar-thumb {
+  background: #8b0000;
+  border-radius: 10px;
+}
+
+.layer-section {
+  margin-bottom: 22px;
+}
+
+.section-header {
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: #111827;
+}
+
+.layer-row {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 0;
+  font-size: 14px;
+  color: #111827;
+  white-space: normal;
+}
+
+.layer-row input[type="radio"],
+.layer-row input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #8b0000;
+}
+
+#layerSearch {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+#manageLayersBtn {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: #8b0000;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 
@@ -356,7 +459,32 @@ RESPONSIVE
     font-size: 12px;
   }
 
-  .attribute-table {
-    width: calc(100% - 30px);
+  #layerPanel {
+    width: calc(100vw - 30px);
+    right: 15px;
+    top: 90px;
   }
+}
+
+
+.layer-body {
+  overflow-y: scroll !important;
+}
+
+.layer-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.layer-body::-webkit-scrollbar-track {
+  background: #eeeeee;
+  border-radius: 10px;
+}
+
+.layer-body::-webkit-scrollbar-thumb {
+  background: #8b0000;
+  border-radius: 10px;
+}
+
+.layer-body::-webkit-scrollbar-thumb:hover {
+  background: #5f0000;
 }

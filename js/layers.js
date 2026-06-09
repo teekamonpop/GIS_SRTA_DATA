@@ -46,6 +46,13 @@ function getLayerStyle(layerName) {
       weight: 3,
       fillColor: '#111111',
       fillOpacity: 0.05
+    },
+
+    'แปลงขอนแก่น': {
+      color: '#8b0000',
+      weight: 2,
+      fillColor: '#8b0000',
+      fillOpacity: 0.18
     }
 
   };
@@ -119,6 +126,25 @@ function registerFeature(
       layerName
     )
   );
+
+}
+
+
+// ====================
+// REGISTER NAMED LAYER
+// ====================
+
+function registerNamedLayer(layer, layerName) {
+
+  layer.options.name =
+    layerName;
+
+  if (!window.SRTA_LAYER_STORE) {
+    window.SRTA_LAYER_STORE = {};
+  }
+
+  window.SRTA_LAYER_STORE[layerName] =
+    layer;
 
 }
 
@@ -242,7 +268,10 @@ export async function loadKMLLayer(
         }
       );
 
-    //layer.addTo(map);
+    registerNamedLayer(
+      layer,
+      layerName
+    );
 
     layerControl.addOverlay(
       layer,
@@ -331,7 +360,10 @@ export async function loadShapefileLayer(
         }
       );
 
-    //layer.addTo(map);
+    registerNamedLayer(
+      layer,
+      layerName
+    );
 
     layerControl.addOverlay(
       layer,

@@ -2,31 +2,14 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
+  <link rel="icon" href="data:,">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Web GIS</title>
 
-  <!-- LEAFLET CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-
-  <!-- LEAFLET DRAW CSS -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
-  />
-
-  <!-- YOUR CSS -->
-  <link
-    rel="stylesheet"
-    href="./css/style.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+  <link rel="stylesheet" href="./css/style.css" />
 </head>
 
 <body>
@@ -34,7 +17,6 @@
   <!-- PARCEL FORM -->
   <div id="parcel-form-modal" class="parcel-form-modal">
     <div class="parcel-form-card">
-
       <h3>ข้อมูลแปลงที่ดิน</h3>
 
       <label>ชื่อแปลง</label>
@@ -50,51 +32,22 @@
       <textarea id="parcel-note"></textarea>
 
       <div class="parcel-form-actions">
-
-        <button id="parcel-cancel" type="button">
-          ยกเลิก
-        </button>
-
-        <button id="parcel-save" type="button">
-          บันทึก
-        </button>
-
+        <button id="parcel-cancel" type="button">ยกเลิก</button>
+        <button id="parcel-save" type="button">บันทึก</button>
       </div>
-
     </div>
   </div>
 
-  <!-- TOP RIGHT TOOLS -->
+  <!-- TOP TOOLS -->
   <div class="top-right-tools">
-
-    <button id="export-shp" type="button">
-      Export SHP
-    </button>
-
-    <button id="export-kml" type="button">
-      Export KML
-    </button>
-
-    <button id="export-kmz" type="button">
-      Export KMZ
-    </button>
-
-    <button id="export-pdf" type="button">
-      Export PDF
-    </button>
-
-    <button id="show-attribute-table" type="button">
-      Table
-    </button>
-
-    <button id="clear-drawings" type="button">
-      Clear
-    </button>
-
-    <button id="logout-button" type="button">
-      Logout
-    </button>
-
+    <button id="locate-button" type="button">ตำแหน่งฉัน</button>
+    <button id="export-shp" type="button">Export SHP</button>
+    <button id="export-kml" type="button">Export KML</button>
+    <button id="export-kmz" type="button">Export KMZ</button>
+    <button id="export-pdf" type="button">Export PDF</button>
+    <button id="show-attribute-table" type="button">Table</button>
+    <button id="clear-drawings" type="button">Clear</button>
+    <button id="logout-button" type="button">Logout</button>
   </div>
 
   <!-- MAP -->
@@ -102,24 +55,13 @@
 
   <!-- ATTRIBUTE TABLE -->
   <div id="attribute-table" class="attribute-table">
-
     <div class="attribute-header">
-
       <b>ตารางข้อมูลแปลง</b>
-
-      <button
-        id="close-attribute-table"
-        type="button"
-      >
-        ×
-      </button>
-
+      <button id="close-attribute-table" type="button">×</button>
     </div>
 
     <table>
-
       <thead>
-
         <tr>
           <th>ชื่อแปลง</th>
           <th>ผู้ขอเช่า</th>
@@ -127,16 +69,12 @@
           <th>ขนาดพื้นที่</th>
           <th>แก้ไข</th>
         </tr>
-
       </thead>
-
       <tbody id="attribute-table-body"></tbody>
-
     </table>
-
   </div>
 
-  <!-- SEARCH BOX -->
+  <!-- SEARCH -->
   <div class="search-box">
     <input
       type="text"
@@ -145,47 +83,122 @@
     />
   </div>
 
-  <!-- LEAFLET JS -->
+<!-- CUSTOM LAYER PANEL -->
+<button id="layerToggle" type="button">🗂️</button>
+
+<div id="layerPanel" class="closed">
+  <div class="layer-header">
+    <div class="layer-title">
+      <div class="layer-icon">🗂️</div>
+      <div>
+        <div class="layer-name">ชั้นข้อมูล</div>
+        <div class="layer-subtitle">จัดการข้อมูลบนแผนที่</div>
+      </div>
+    </div>
+
+    <button id="closeLayer" type="button">✕</button>
+  </div>
+
+  <div class="layer-body">
+
+    <div class="layer-section">
+      <div class="section-header">แผนที่พื้นฐาน</div>
+
+      <label class="layer-row">
+        <input type="radio" name="baseMapCustom" data-layer-name="Google Satellite" checked>
+        <span>Google Satellite</span>
+      </label>
+
+      <label class="layer-row">
+        <input type="radio" name="baseMapCustom" data-layer-name="Google Map">
+        <span>Google Map</span>
+      </label>
+
+      <label class="layer-row">
+        <input type="radio" name="baseMapCustom" data-layer-name="OpenStreetMap">
+        <span>OpenStreetMap</span>
+      </label>
+
+      <label class="layer-row">
+        <input type="radio" name="baseMapCustom" data-layer-name="Google Hybrid">
+        <span>Google Hybrid</span>
+      </label>
+
+      <label class="layer-row">
+        <input type="radio" name="baseMapCustom" data-layer-name="Esri Satellite">
+        <span>Esri Satellite</span>
+      </label>
+    </div>
+
+    <div class="layer-section">
+      <div class="section-header">ชั้นข้อมูล</div>
+
+      <input id="layerSearch" type="text" placeholder="ค้นหาชั้นข้อมูล...">
+
+      <label class="layer-row">
+        <input type="checkbox" data-layer-name="เครื่องมือวัด / พื้นที่ที่วาด" checked>
+        <span>เครื่องมือวัด / พื้นที่ที่วาด</span>
+      </label>
+
+      <label class="layer-row">
+        <input type="checkbox" data-layer-name="KM_RAILWAY_47">
+        <span>KM_RAILWAY_47</span>
+      </label>
+
+      <label class="layer-row">
+        <input type="checkbox" data-layer-name="KM_RAILWAY_48">
+        <span>KM_RAILWAY_48</span>
+      </label>
+
+      <label class="layer-row">
+        <input type="checkbox" data-layer-name="R.O.W">
+        <span>R.O.W</span>
+      </label>
+
+      <label class="layer-row">
+        <input type="checkbox" data-layer-name="แปลงที่มีสัญญาเช่า">
+        <span>แปลงที่มีสัญญาเช่า</span>
+      </label>
+
+      <label class="layer-row">
+        <input type="checkbox" data-layer-name="เส้นทางประธาน">
+        <span>เส้นทางประธาน</span>
+      </label>
+    </div>
+
+    <button id="manageLayersBtn" type="button">
+      ⚙ จัดการเลเยอร์
+    </button>
+
+  </div>
+</div>
+
+  <!-- LIBRARIES -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- toGeoJSON -->
   <script src="https://cdn.jsdelivr.net/npm/@tmcw/togeojson@5.8.1/dist/togeojson.umd.js"></script>
-
-  <!-- LEAFLET DRAW -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-
-  <!-- JSZIP -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-  <!-- SHP READ -->
   <script src="https://unpkg.com/shpjs@latest/dist/shp.min.js"></script>
-
-  <!-- SHP WRITE -->
   <script src="https://unpkg.com/@nickrsan/shp-write@latest/shpwrite.js"></script>
-
-  <!-- TOKML -->
   <script src="https://unpkg.com/tokml/tokml.js"></script>
-
-  <!-- TURF -->
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
-
-  <!-- HTML2CANVAS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-  <!-- LEAFLET GEOMETRY UTIL -->
   <script src="https://cdn.jsdelivr.net/npm/leaflet-geometryutil@0.10.3/src/leaflet.geometryutil.js"></script>
-
-  <!-- LEAFLET SNAP -->
   <script src="https://cdn.jsdelivr.net/npm/leaflet-snap@0.0.4/leaflet.snap.js"></script>
-
-  <!-- JSPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  <!-- SUPABASE -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- MAIN JS -->
   <script type="module" src="./js/main.js"></script>
+
+  <script>
+    document.getElementById('layerToggle').onclick = function () {
+      document.getElementById('layerPanel').classList.toggle('closed');
+    };
+
+    document.getElementById('closeLayer').onclick = function () {
+      document.getElementById('layerPanel').classList.add('closed');
+    };
+  </script>
 
 </body>
 </html>

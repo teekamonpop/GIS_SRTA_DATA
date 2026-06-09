@@ -1,11 +1,6 @@
 export const CONFIG = {
 
-  kmlFiles: [
-    {
-      path: './Digital_File/khonkaen_274.kml',
-      name: 'Kohnkaen'
-    }
-  ],
+  kmlFiles: [],
 
   shpFiles: [
 
@@ -32,7 +27,12 @@ export const CONFIG = {
     {
       path: './Digital_File/Build_Contact.zip',
       name: 'แปลงที่มีสัญญาเช่า'
-    }
+    },
+
+    //{
+     // path: './Digital_File/แปลงขอนแก่น.zip',
+     // name: 'แปลงขอนแก่น'
+    //}
 
   ]
 

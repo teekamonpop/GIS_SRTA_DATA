@@ -75,6 +75,10 @@ L.control.zoom({
 }).addTo(map);
 
 // ====================
+// SRTA LAYER PANEL - IMAGE STYLE
+// ====================
+
+// ====================
 // BASEMAP
 // ====================
 
@@ -131,6 +135,11 @@ const baseMaps = {
 };
 
 const overlayMaps = {};
+window.SRTA_BASEMAPS =
+  baseMaps;
+
+window.SRTA_OVERLAYS =
+  overlayMaps;
 
 const layerControl = L.control.layers(
   baseMaps,
@@ -140,6 +149,12 @@ const layerControl = L.control.layers(
     collapsed: false
   }
 ).addTo(map);
+
+window.layerControl = layerControl;
+
+// ====================
+// SRTA LAYER PANEL - IMAGE STYLE
+// ====================
 
 // ====================
 // SEARCHABLE LAYERS
@@ -261,6 +276,8 @@ layerControl.addOverlay(
   drawnItems,
   'เครื่องมือวัด / พื้นที่ที่วาด'
 );
+
+window.drawnItems = drawnItems;
 
 // ====================
 // AUTO SAVE
@@ -1011,6 +1028,126 @@ map.on(
   'draw:deletestop',
   enableMapInteraction
 );
+
+// ====================
+// CURRENT LOCATION
+// ====================
+
+let currentLocationMarker = null;
+let currentAccuracyCircle = null;
+
+const locateButton =
+  document.getElementById('locate-button');
+
+if (locateButton) {
+
+  locateButton.addEventListener(
+    'click',
+    function () {
+
+      if (!navigator.geolocation) {
+        alert('อุปกรณ์นี้ไม่รองรับ GPS');
+        return;
+      }
+
+      locateButton.textContent =
+        'กำลังค้นหา...';
+
+      navigator.geolocation.getCurrentPosition(
+
+        function (position) {
+
+          const lat =
+            position.coords.latitude;
+
+          const lng =
+            position.coords.longitude;
+
+          const accuracy =
+            position.coords.accuracy;
+
+          if (currentLocationMarker) {
+            map.removeLayer(
+              currentLocationMarker
+            );
+          }
+
+          if (currentAccuracyCircle) {
+            map.removeLayer(
+              currentAccuracyCircle
+            );
+          }
+
+          currentLocationMarker =
+            L.marker(
+              [lat, lng]
+            ).addTo(map);
+
+          currentAccuracyCircle =
+            L.circle(
+              [lat, lng],
+              {
+                radius: accuracy,
+                color: '#2563eb',
+                fillColor: '#2563eb',
+                fillOpacity: 0.12,
+                weight: 2
+              }
+            ).addTo(map);
+
+          currentLocationMarker.bindPopup(
+            '<b>ตำแหน่งปัจจุบัน</b><br>' +
+            'Latitude: ' +
+            lat.toFixed(6) +
+            '<br>' +
+            'Longitude: ' +
+            lng.toFixed(6) +
+            '<br>' +
+            'ความแม่นยำ: ' +
+            accuracy.toFixed(0) +
+            ' เมตร'
+          );
+
+          map.setView(
+            [lat, lng],
+            18
+          );
+
+          currentLocationMarker.openPopup();
+
+          locateButton.textContent =
+            'ตำแหน่งฉัน';
+
+        },
+
+        function (error) {
+
+          console.error(
+            'GPS ERROR:',
+            error
+          );
+
+          alert(
+            'ไม่สามารถดึงตำแหน่งได้'
+          );
+
+          locateButton.textContent =
+            'ตำแหน่งฉัน';
+
+        },
+
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
+
+      );
+
+    }
+  );
+
+}
 
 // ====================
 // SEARCH
@@ -1982,7 +2119,66 @@ if (exportPdfButton) {
 }
 
 updateAttributeTable();
+// ====================
+// CUSTOM LAYER PANEL
+// ====================
 
+function setupCustomLayerPanel() {
+  const panel = document.getElementById('layerPanel');
+
+  if (!panel) {
+    console.warn('ไม่พบ layerPanel');
+    return;
+  }
+
+  panel.addEventListener('change', function (event) {
+    const input = event.target;
+
+    if (!input.dataset.layerName) {
+      return;
+    }
+
+    const layerName = input.dataset.layerName;
+
+    if (input.type === 'radio') {
+      const baseMaps = window.SRTA_BASEMAPS;
+
+      Object.values(baseMaps).forEach(function (baseLayer) {
+        map.removeLayer(baseLayer);
+      });
+
+      map.addLayer(baseMaps[layerName]);
+
+      console.log('เปลี่ยนแผนที่พื้นฐาน:', layerName);
+      return;
+    }
+
+    if (input.type === 'checkbox') {
+      let targetLayer = null;
+
+      if (layerName === 'เครื่องมือวัด / พื้นที่ที่วาด') {
+        targetLayer = window.drawnItems;
+      } else {
+        targetLayer = window.SRTA_LAYER_STORE[layerName];
+      }
+
+      if (!targetLayer) {
+        console.warn('ไม่พบ layer:', layerName);
+        return;
+      }
+
+      if (input.checked) {
+        map.addLayer(targetLayer);
+      } else {
+        map.removeLayer(targetLayer);
+      }
+
+      console.log('toggle layer:', layerName, input.checked);
+    }
+  });
+}
+
+setTimeout(setupCustomLayerPanel, 3000);
 console.log(
   'WEB GIS READY'
 );
