@@ -123,6 +123,23 @@ const esriSatellite = L.tileLayer(
 );
 
 // ====================
+// DEPARTMENT OF LAND WMS
+// ====================
+
+const dolWmsLayer =
+  L.tileLayer.wms(
+    'https://ms.longdo.com/mapproxy/service',
+    {
+      layers: 'dol',
+      format: 'image/png',
+      transparent: true,
+      version: '1.1.1',
+      attribution: 'Department of Land WMS / Longdo'
+    }
+  );
+
+
+// ====================
 // LAYER CONTROL
 // ====================
 
@@ -134,7 +151,9 @@ const baseMaps = {
   'Esri Satellite': esriSatellite
 };
 
-const overlayMaps = {};
+const overlayMaps = {
+  'Department of Land WMS': dolWmsLayer
+};
 window.SRTA_BASEMAPS =
   baseMaps;
 
@@ -2160,6 +2179,13 @@ function setupCustomLayerPanel() {
         targetLayer = window.drawnItems;
       } else {
         targetLayer = window.SRTA_LAYER_STORE[layerName];
+        if (!window.SRTA_LAYER_STORE) {
+  window.SRTA_LAYER_STORE = {};
+}
+
+window.SRTA_LAYER_STORE[
+  'Department of Land WMS'
+] = dolWmsLayer;
       }
 
       if (!targetLayer) {
