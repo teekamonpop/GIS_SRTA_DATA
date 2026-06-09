@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard | SRTA Survey</title>
+<style>
+body{margin:0;font-family:Arial;background:#f3f4f6;color:#111827}
+.header{height:70px;background:#8b0000;color:white;display:flex;align-items:center;justify-content:space-between;padding:0 32px}
+.header h1{font-size:24px}
+.header a{color:white;text-decoration:none;background:rgba(255,255,255,.15);padding:10px 16px;border-radius:10px}
+.container{padding:28px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.card{background:white;border-radius:18px;padding:22px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.card h3{margin:0;color:#6b7280;font-size:14px}
+.card b{display:block;margin-top:12px;font-size:34px;color:#8b0000}
+.region{margin-top:28px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.btn{display:inline-block;margin-top:30px;background:#8b0000;color:white;text-decoration:none;padding:14px 22px;border-radius:12px;font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Dashboard</h1>
+  <a href="./index.html">เปิด Web GIS</a>
+</div>
+
+<div class="container">
+  <div class="cards">
+    <div class="card"><h3>โครงการทั้งหมด</h3><b id="total">0</b></div>
+    <div class="card"><h3>รอดำเนินการ</h3><b id="wait">0</b></div>
+    <div class="card"><h3>กำลังสำรวจ</h3><b id="doing">0</b></div>
+    <div class="card"><h3>เสร็จสิ้น</h3><b id="done">0</b></div>
+  </div>
+
+  <div class="region">
+    <div class="card"><h3>ภาคเหนือ</h3><b id="north">0</b></div>
+    <div class="card"><h3>ภาคตะวันออกเฉียงเหนือ</h3><b id="northeast">0</b></div>
+    <div class="card"><h3>ภาคกลาง</h3><b id="central">0</b></div>
+    <div class="card"><h3>ภาคใต้</h3><b id="south">0</b></div>
+  </div>
+
+  <a class="btn" href="./project-survey.html">เปิด Project Survey</a>
+</div>
+
+<script>
+const data = JSON.parse(localStorage.getItem('surveyProjects') || '[]');
+
+document.getElementById('total').textContent = data.length;
+document.getElementById('wait').textContent = data.filter(x => x.status === 'รอดำเนินการ').length;
+document.getElementById('doing').textContent = data.filter(x => x.status === 'กำลังสำรวจ').length;
+document.getElementById('done').textContent = data.filter(x => x.status === 'เสร็จสิ้น').length;
+
+document.getElementById('north').textContent = data.filter(x => x.region === 'ภาคเหนือ').length;
+document.getElementById('northeast').textContent = data.filter(x => x.region === 'ภาคตะวันออกเฉียงเหนือ').length;
+document.getElementById('central').textContent = data.filter(x => x.region === 'ภาคกลาง').length;
+document.getElementById('south').textContent = data.filter(x => x.region === 'ภาคใต้').length;
+</script>
+
+</body>
+</html>

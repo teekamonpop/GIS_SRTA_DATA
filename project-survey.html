@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Project Survey</title>
+<style>
+body{margin:0;font-family:Arial;background:#f3f4f6;color:#111827}
+.header{height:70px;background:#8b0000;color:white;display:flex;align-items:center;justify-content:space-between;padding:0 32px}
+.header a{color:white;text-decoration:none;background:rgba(255,255,255,.15);padding:10px 16px;border-radius:10px}
+.container{padding:28px}
+.form,.table{background:white;border-radius:18px;padding:22px;box-shadow:0 8px 24px rgba(0,0,0,.08);margin-bottom:22px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+input,select{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ddd;border-radius:10px}
+button{margin-top:16px;background:#8b0000;color:white;border:none;padding:13px 22px;border-radius:10px;font-weight:700;cursor:pointer}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
+th{background:#f9fafb}
+.delete-btn{margin:0;padding:8px 14px}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h2>Project Survey</h2>
+  <a href="./dashboard.html">กลับ Dashboard</a>
+</div>
+
+<div class="container">
+
+  <div class="form">
+    <h3>เพิ่มโครงการสำรวจ</h3>
+
+    <div class="grid">
+      <input id="projectName" placeholder="ชื่อโครงการ">
+      <input id="province" placeholder="จังหวัด">
+      <input id="station" placeholder="สถานี / พื้นที่">
+
+      <select id="region">
+        <option value="ภาคเหนือ">ภาคเหนือ</option>
+        <option value="ภาคตะวันออกเฉียงเหนือ">ภาคตะวันออกเฉียงเหนือ</option>
+        <option value="ภาคกลาง">ภาคกลาง</option>
+        <option value="ภาคใต้">ภาคใต้</option>
+      </select>
+
+      <select id="projectStatus">
+        <option value="รอดำเนินการ">รอดำเนินการ</option>
+        <option value="กำลังสำรวจ">กำลังสำรวจ</option>
+        <option value="เร่งด่วน">เร่งด่วน</option>
+        <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+      </select>
+
+      <input id="owner" placeholder="ผู้รับผิดชอบ">
+      <input id="surveyDate" type="date">
+      <input id="note" placeholder="หมายเหตุ">
+    </div>
+
+    <button id="saveButton" type="button" onclick="addProject()">บันทึกโครงการ</button>
+  </div>
+
+  <div class="table">
+    <h3>รายการโครงการ</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ชื่อโครงการ</th>
+          <th>ภาค</th>
+          <th>จังหวัด</th>
+          <th>สถานี</th>
+          <th>วันที่สำรวจ</th>
+          <th>สถานะ</th>
+          <th>ผู้รับผิดชอบ</th>
+          <th>จัดการ</th>
+        </tr>
+      </thead>
+
+      <tbody id="projectTable"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+let editIndex = null;
+function getData(){
+  return JSON.parse(localStorage.getItem('surveyProjects') || '[]');
+}
+
+function saveData(data){
+  localStorage.setItem('surveyProjects', JSON.stringify(data));
+}
+
+function addProject(){
+  const project = {
+    projectName: document.getElementById('projectName').value,
+    province: document.getElementById('province').value,
+    station: document.getElementById('station').value,
+    region: document.getElementById('region').value,
+    status: document.getElementById('projectStatus').value,
+    owner: document.getElementById('owner').value,
+    surveyDate: document.getElementById('surveyDate').value,
+    note: document.getElementById('note').value
+  };
+
+  const data = getData();
+
+  if (editIndex === null) {
+    data.push(project);
+  } else {
+    data[editIndex] = project;
+    editIndex = null;
+    document.getElementById('saveButton').textContent = 'บันทึกโครงการ';
+  }
+
+  saveData(data);
+  clearForm();
+  renderTable();
+}
+
+function deleteProject(index){
+  if (!confirm('ต้องการลบโครงการนี้ใช่หรือไม่?')) {
+    return;
+  }
+
+  const data = getData();
+  data.splice(index, 1);
+  saveData(data);
+  renderTable();
+}
+
+function editProject(index){
+  const data = getData();
+  const item = data[index];
+
+  document.getElementById('projectName').value = item.projectName || '';
+  document.getElementById('province').value = item.province || '';
+  document.getElementById('station').value = item.station || '';
+  document.getElementById('region').value = item.region || 'ภาคเหนือ';
+  document.getElementById('projectStatus').value = item.status || 'รอดำเนินการ';
+  document.getElementById('owner').value = item.owner || '';
+  document.getElementById('surveyDate').value = item.surveyDate || '';
+  document.getElementById('note').value = item.note || '';
+
+  editIndex = index;
+  document.getElementById('saveButton').textContent = 'อัปเดตโครงการ';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function clearForm(){
+  document.getElementById('projectName').value = '';
+  document.getElementById('province').value = '';
+  document.getElementById('station').value = '';
+  document.getElementById('region').value = 'ภาคเหนือ';
+  document.getElementById('projectStatus').value = 'รอดำเนินการ';
+  document.getElementById('owner').value = '';
+  document.getElementById('surveyDate').value = '';
+  document.getElementById('note').value = '';
+}
+
+
+function renderTable(){
+  const data = getData();
+  const table = document.getElementById('projectTable');
+
+  table.innerHTML = '';
+
+  data.forEach(function(item, index){
+    table.innerHTML += `
+      <tr>
+        <td>${item.projectName || '-'}</td>
+        <td>${item.region || '-'}</td>
+        <td>${item.province || '-'}</td>
+        <td>${item.station || '-'}</td>
+        <td>${item.surveyDate || '-'}</td>
+        <td>${item.status || '-'}</td>
+        <td>${item.owner || '-'}</td>
+        <td>
+         <button class="delete-btn" onclick="editProject(${index})">
+  แก้ไข
+</button>
+
+<button class="delete-btn" onclick="deleteProject(${index})">
+  ลบ
+</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+renderTable();
+</script>
+
+</body>
+</html>
