@@ -9,7 +9,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-family: Arial, sans-serif;
+  font-family:'Noto Sans Thai',sans-serif;
 }
 
 
@@ -487,4 +487,25 @@ RESPONSIVE
 
 .layer-body::-webkit-scrollbar-thumb:hover {
   background: #5f0000;
+}
+
+h1,
+h2,
+h3{
+  font-weight:700;
+  letter-spacing:-0.3px;
+}
+
+.project-item b{
+  font-weight:700;
+}
+
+.detail-row{
+  font-size:15px;
+}
+
+.card{
+  border:none;
+  border-radius:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
 }

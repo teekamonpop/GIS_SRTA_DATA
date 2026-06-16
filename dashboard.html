@@ -4,329 +4,70 @@
 <meta charset="UTF-8">
 <title>Dashboard | SRTA GIS</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
 *{box-sizing:border-box}
+body{margin:0;font-family:Arial,Tahoma,sans-serif;background:#f5f6f8;color:#111827}
+.layout{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+.sidebar{background:#fff;border-right:1px solid #eee;padding:24px 18px;position:relative}
+.logo{display:flex;gap:12px;align-items:center;margin-bottom:32px}
+.logo-icon{font-size:32px;color:#8b0000}
+.logo b{font-size:23px}
+.logo span{font-size:13px;color:#6b7280}
+.menu a{display:flex;gap:12px;align-items:center;padding:14px 16px;margin-bottom:8px;border-radius:10px;text-decoration:none;color:#111827;font-weight:700}
+.menu a.active,.menu a:hover{background:#8b0000;color:white}
+.logout{position:absolute;bottom:24px;left:18px;right:18px;background:#8b0000;color:white;padding:14px;border-radius:12px;text-align:center;text-decoration:none;font-weight:800}
 
-body{
-  margin:0;
-  font-family:Arial,Tahoma,sans-serif;
-  background:#f4f5f7;
-  color:#111827;
-  overflow:hidden;
-}
+.main{padding:22px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.topbar h1{margin:0;font-size:28px}
+.topbar p{margin:6px 0 0;color:#6b7280}
+.btn{background:#8b0000;color:white;text-decoration:none;border:none;border-radius:10px;padding:12px 16px;font-weight:800;cursor:pointer}
 
-.layout{
-  display:grid;
-  grid-template-columns:220px 340px 1fr;
-  height:100vh;
-}
+.kpi{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px}
+.card{background:white;border:1px solid #eee;border-radius:16px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.kpi .card{display:flex;gap:14px;align-items:center}
+.ico{width:52px;height:52px;border-radius:14px;background:#fff0f0;color:#8b0000;display:flex;align-items:center;justify-content:center;font-size:26px}
+.card small{color:#6b7280;font-weight:700}
+.card b{display:block;font-size:26px;margin-top:5px;color:#8b0000}
 
-/* SIDEBAR */
-.sidebar{
-  background:#ffffff;
-  border-right:1px solid #eeeeee;
-  padding:24px 18px;
-  position:relative;
-}
-
-.logo{
-  display:flex;
-  gap:12px;
-  align-items:center;
-  margin-bottom:34px;
-}
-
-.logo-icon{
-  font-size:32px;
-  color:#8b0000;
-}
-
-.logo b{
-  font-size:23px;
-}
-
-.logo span{
-  font-size:13px;
-  color:#6b7280;
-}
-
-.menu a{
-  display:flex;
-  gap:12px;
-  align-items:center;
-  padding:14px 16px;
-  margin-bottom:8px;
-  border-radius:10px;
-  text-decoration:none;
-  color:#111827;
-  font-weight:700;
-}
-
-.menu a.active,
-.menu a:hover{
-  background:#8b0000;
-  color:white;
-}
-
-.logout{
-  position:absolute;
-  bottom:24px;
-  left:18px;
-  right:18px;
-  background:#8b0000;
-  color:white;
-  padding:14px;
-  border-radius:12px;
-  text-align:center;
-  text-decoration:none;
-  font-weight:800;
-}
-
-/* PROJECT PANEL */
-.project-panel{
-  background:#ffffff;
-  border-right:1px solid #eeeeee;
-  padding:20px;
-  overflow:hidden;
-}
-
-.project-head{
-  margin-bottom:16px;
-}
-
-.project-head h1{
-  margin:0;
-  font-size:23px;
-}
-
-.project-head p{
-  margin:6px 0 0;
-  color:#6b7280;
-  font-size:13px;
-}
-
-.kpi-mini{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-bottom:16px;
-}
-
-.kpi-box{
-  background:#fff5f5;
-  border:1px solid #f1d5d5;
-  border-radius:14px;
-  padding:13px;
-}
-
-.kpi-box small{
-  color:#6b7280;
-  font-weight:700;
-  font-size:12px;
-}
-
-.kpi-box b{
-  display:block;
-  margin-top:6px;
-  font-size:24px;
-  color:#8b0000;
-}
-
-.project-actions{
-  display:flex;
-  gap:8px;
-  margin-bottom:14px;
-}
-
-.btn{
-  background:#8b0000;
-  color:white;
-  text-decoration:none;
-  border:none;
-  border-radius:10px;
-  padding:11px 14px;
-  font-weight:800;
-  cursor:pointer;
-  font-size:13px;
-}
-
-.btn.secondary{
-  background:#374151;
-}
-
-.project-search{
-  width:100%;
-  padding:12px;
-  border:1px solid #dddddd;
-  border-radius:12px;
-  margin-bottom:14px;
-}
-
-.project-list{
-  height:calc(100vh - 330px);
-  overflow-y:auto;
-  padding-right:4px;
-}
-
-.project-item{
-  border:1px solid #eeeeee;
-  border-radius:14px;
-  padding:14px;
-  margin-bottom:10px;
-  cursor:pointer;
-  background:#ffffff;
-}
-
-.project-item:hover,
-.project-item.active{
-  border-color:#8b0000;
-  background:#fff5f5;
-}
-
-.project-item b{
-  font-size:15px;
-}
-
-.project-item span{
-  display:block;
-  margin-top:6px;
-  color:#6b7280;
-  font-size:13px;
-}
-
-.badge{
-  display:inline-block !important;
-  width:auto;
-  margin-top:9px;
-  padding:5px 9px;
-  border-radius:999px;
-  font-size:12px !important;
-  font-weight:800;
-}
-
+.workspace{display:grid;grid-template-columns:360px 1fr;gap:18px;margin-bottom:18px}
+.project-list{height:720px;overflow-y:auto;padding-right:4px}
+.project-item{border:1px solid #eee;border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;background:white}
+.project-item:hover,.project-item.active{border-color:#8b0000;background:#fff5f5}
+.project-item b{font-size:15px}
+.project-item span{display:block;margin-top:6px;color:#6b7280;font-size:13px}
+.badge{display:inline-block!important;width:auto;margin-top:8px;padding:5px 9px;border-radius:999px;font-size:12px!important;font-weight:800}
 .done{background:#dcfce7;color:#15803d}
 .doing{background:#fef3c7;color:#92400e}
 .wait{background:#fee2e2;color:#991b1b}
+.urgent{background:#ede9fe;color:#6d28d9}
 
-/* MAP AREA */
-.map-area{
-  padding:20px;
-  overflow:hidden;
-}
+#projectSearch{width:100%;padding:12px;border:1px solid #ddd;border-radius:12px;margin-bottom:14px}
 
-.map-top{
-  height:62px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:14px;
-}
+.map-card{padding:16px}
+.map-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.map-head h2{margin:0;font-size:20px}
+#dashboardMap{height:720px;border-radius:14px;overflow:hidden;background:#ddd}
 
-.map-top h2{
-  margin:0;
-  font-size:24px;
-}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.detail-row{display:grid;grid-template-columns:150px 1fr;padding:9px 0;border-bottom:1px solid #eee;font-size:14px}
+.detail-row b{color:#6b7280}
+.empty{color:#9ca3af;padding:22px;text-align:center}
 
-.map-top p{
-  margin:6px 0 0;
-  color:#6b7280;
-  font-size:13px;
-}
+.project-list::-webkit-scrollbar{width:7px}
+.project-list::-webkit-scrollbar-thumb{background:#8b0000;border-radius:10px}
 
-.map-wrap{
-  background:#ffffff;
-  border:1px solid #eeeeee;
-  border-radius:18px;
-  padding:16px;
-  box-shadow:0 8px 24px rgba(0,0,0,.06);
-  height:calc(100vh - 116px);
-}
-
-#dashboardMap{
-  width:100%;
-  height:100%;
-  border-radius:14px;
-  overflow:hidden;
-  background:#dddddd;
-}
-
-/* DETAIL PANEL */
-.detail-panel{
-  position:absolute;
-  right:40px;
-  bottom:36px;
-  width:420px;
-  max-height:330px;
-  background:#ffffff;
-  border-radius:16px;
-  box-shadow:0 18px 45px rgba(0,0,0,.25);
-  z-index:9999;
-  overflow:auto;
-  border:1px solid #eeeeee;
-}
-
-.detail-head{
-  background:#8b0000;
-  color:white;
-  padding:14px 18px;
-  font-weight:800;
-}
-
-.detail-body{
-  padding:16px 18px;
-}
-
-.detail-row{
-  display:grid;
-  grid-template-columns:130px 1fr;
-  padding:8px 0;
-  border-bottom:1px solid #eeeeee;
-  font-size:14px;
-}
-
-.detail-row b{
-  color:#6b7280;
-}
-
-.empty{
-  color:#9ca3af;
-  padding:18px;
-  text-align:center;
-}
-
-/* SCROLL */
-.project-list::-webkit-scrollbar,
-.detail-panel::-webkit-scrollbar{
-  width:7px;
-}
-
-.project-list::-webkit-scrollbar-thumb,
-.detail-panel::-webkit-scrollbar-thumb{
-  background:#8b0000;
-  border-radius:10px;
-}
-
-/* RESPONSIVE */
-@media(max-width:1100px){
-  body{overflow:auto}
-  .layout{
-    display:block;
-    height:auto;
-  }
-  .sidebar{
-    display:none;
-  }
-  .project-panel{
-    border-right:none;
-  }
-  .project-list{
-    height:300px;
-  }
-  .map-wrap{
-    height:700px;
-  }
+@media(max-width:1200px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .kpi{grid-template-columns:repeat(2,1fr)}
+  .workspace,.detail-grid{grid-template-columns:1fr}
+  .project-list{height:360px}
 }
 </style>
 </head>
@@ -335,7 +76,6 @@ body{
 
 <div class="layout">
 
-  <!-- MENU -->
   <aside class="sidebar">
     <div class="logo">
       <div class="logo-icon">◇</div>
@@ -356,81 +96,61 @@ body{
     <a class="logout" href="./login.html">ออกจากระบบ</a>
   </aside>
 
-  <!-- PROJECT LIST -->
-  <section class="project-panel">
+  <main class="main">
 
-    <div class="project-head">
-      <h1>Project Survey</h1>
-      <p>รายการโครงการสำรวจทั้งหมด</p>
-    </div>
-
-    <div class="kpi-mini">
-      <div class="kpi-box">
-        <small>โครงการ</small>
-        <b id="totalProjects">0</b>
-      </div>
-
-      <div class="kpi-box">
-        <small>แปลง</small>
-        <b id="totalParcels">0</b>
-      </div>
-
-      <div class="kpi-box">
-        <small>กำลังสำรวจ</small>
-        <b id="doing">0</b>
-      </div>
-
-      <div class="kpi-box">
-        <small>เสร็จสิ้น</small>
-        <b id="done">0</b>
-      </div>
-    </div>
-
-    <div class="project-actions">
-      <a class="btn" href="./project-survey.html">+ สร้างโครงการ</a>
-      <a class="btn secondary" href="./index.html">เปิด GIS</a>
-    </div>
-
-    <input
-      id="projectSearch"
-      class="project-search"
-      type="text"
-      placeholder="ค้นหาโครงการ / จังหวัด / สถานี..."
-    >
-
-    <div id="projectList" class="project-list"></div>
-
-  </section>
-
-  <!-- MAP -->
-  <main class="map-area">
-
-    <div class="map-top">
+    <div class="topbar">
       <div>
-        <h2>แผนที่แปลงรวมทั้งหมด</h2>
-        <p>คลิกโครงการด้านซ้ายเพื่อ Zoom ไปยังแปลงที่เกี่ยวข้อง</p>
+        <h1>Project Survey Dashboard</h1>
+        <p>ภาพรวมโครงการสำรวจและแปลงที่ดินทั้งหมด</p>
       </div>
 
-      <a class="btn" href="./index.html">เปิดแผนที่เต็ม</a>
+      <a class="btn" href="./project-survey.html">+ สร้างโครงการ</a>
     </div>
 
-    <div class="map-wrap">
-      <div id="dashboardMap"></div>
-    </div>
+    <section class="kpi">
+      <div class="card"><div class="ico">📁</div><div><small>โครงการทั้งหมด</small><b id="totalProjects">0</b></div></div>
+      <div class="card"><div class="ico">🗺</div><div><small>แปลงทั้งหมด</small><b id="totalParcels">0</b></div></div>
+      <div class="card"><div class="ico">📐</div><div><small>เนื้อที่รวม</small><b id="totalArea">0</b></div></div>
+      <div class="card"><div class="ico">⏳</div><div><small>กำลังสำรวจ</small><b id="doing">0</b></div></div>
+      <div class="card"><div class="ico">✅</div><div><small>เสร็จสิ้น</small><b id="done">0</b></div></div>
+    </section>
+
+    <section class="workspace">
+
+      <div class="card">
+        <h2>รายการโครงการ</h2>
+        <input id="projectSearch" type="text" placeholder="ค้นหาโครงการ / จังหวัด / สถานี...">
+        <div id="projectList" class="project-list"></div>
+      </div>
+
+      <div class="card map-card">
+        <div class="map-head">
+          <h2>แผนที่แปลงรวมทั้งหมด</h2>
+          <a class="btn" href="./index.html">เปิด Web GIS</a>
+        </div>
+        <div id="dashboardMap"></div>
+      </div>
+
+    </section>
+
+    <section class="detail-grid">
+      <div class="card">
+        <h2>รายละเอียดโครงการ</h2>
+        <div id="projectDetail" class="empty">
+          เลือกโครงการจากรายการด้านซ้าย
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>รายละเอียดแปลง</h2>
+        <div id="parcelDetail" class="empty">
+          คลิกแปลงบนแผนที่เพื่อดูรายละเอียด
+        </div>
+      </div>
+    </section>
 
   </main>
 
-</div>
-
-<!-- DETAIL -->
-<div class="detail-panel">
-  <div class="detail-head">
-    รายละเอียด
-  </div>
-
-  <div id="detailPanel" class="detail-body empty">
-    เลือกโครงการจากรายการด้านซ้าย หรือคลิกแปลงบนแผนที่
-  </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -444,14 +164,10 @@ const SUPABASE_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1dm5xeGl3aW5paWdhYnphZWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjMxNjEsImV4cCI6MjA5NDg5OTE2MX0.7AECH9EkMjGHFZYh6SIrpVo1ulWrf_SK5Ui-AYpCdNg';
 
 const supabaseClient =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
+  window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const map =
-  L.map('dashboardMap')
-    .setView([13.7563, 100.5018], 6);
+  L.map('dashboardMap').setView([13.7563, 100.5018], 6);
 
 L.tileLayer(
   'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
@@ -468,114 +184,26 @@ let parcelLayers = [];
 function statusClass(status){
   if(status === 'เสร็จสิ้น') return 'done';
   if(status === 'กำลังสำรวจ') return 'doing';
+  if(status === 'เร่งด่วน') return 'urgent';
   return 'wait';
 }
 
 function formatArea(sqm){
   if(!sqm) return '0 ไร่';
-
-  return (sqm / 1600).toLocaleString(
-    'th-TH',
-    {
-      maximumFractionDigits:2
-    }
-  ) + ' ไร่';
+  return (sqm / 1600).toLocaleString('th-TH', {
+    maximumFractionDigits:2
+  }) + ' ไร่';
 }
 
-function showDetail(html){
-  const panel =
-    document.getElementById('detailPanel');
+function showProjectDetail(project){
+  const parcels =
+    allParcels.filter(p => p.project_id === project.id);
 
-  panel.className = 'detail-body';
-  panel.innerHTML = html;
-}
+  const totalArea =
+    parcels.reduce((sum,p)=>sum + Number(p.area_sqm || 0),0);
 
-function renderProjectList(filterText = ''){
-  const box =
-    document.getElementById('projectList');
-
-  box.innerHTML = '';
-
-  const keyword =
-    filterText.trim().toLowerCase();
-
-  const filtered =
-    allProjects.filter(project => {
-
-      const text =
-        [
-          project.project_name,
-          project.province,
-          project.station,
-          project.region,
-          project.status,
-          project.owner
-        ].join(' ').toLowerCase();
-
-      return text.includes(keyword);
-
-    });
-
-  if(filtered.length === 0){
-    box.innerHTML =
-      '<div class="empty">ไม่พบโครงการ</div>';
-    return;
-  }
-
-  filtered.forEach(project => {
-
-    const parcels =
-      allParcels.filter(
-        p => p.project_id === project.id
-      );
-
-    const totalArea =
-      parcels.reduce(
-        (sum,p) => sum + Number(p.area_sqm || 0),
-        0
-      );
-
-    const div =
-      document.createElement('div');
-
-    div.className =
-      'project-item';
-
-    div.innerHTML = `
-      <b>${project.project_name || '-'}</b>
-      <span>${project.province || '-'} / ${project.station || '-'}</span>
-      <span>แปลง: ${parcels.length} | พื้นที่: ${formatArea(totalArea)}</span>
-      <span class="badge ${statusClass(project.status)}">${project.status || '-'}</span>
-    `;
-
-    div.onclick = function(){
-
-      document
-        .querySelectorAll('.project-item')
-        .forEach(x => x.classList.remove('active'));
-
-      div.classList.add('active');
-
-      zoomToProject(project.id);
-      showProjectDetail(
-        project,
-        parcels,
-        totalArea
-      );
-
-    };
-
-    box.appendChild(div);
-
-  });
-}
-
-function showProjectDetail(
-  project,
-  parcels,
-  totalArea
-){
-  showDetail(`
+  document.getElementById('projectDetail').className = '';
+  document.getElementById('projectDetail').innerHTML = `
     <div class="detail-row"><b>ชื่อโครงการ</b><span>${project.project_name || '-'}</span></div>
     <div class="detail-row"><b>จังหวัด</b><span>${project.province || '-'}</span></div>
     <div class="detail-row"><b>สถานี / พื้นที่</b><span>${project.station || '-'}</span></div>
@@ -589,139 +217,138 @@ function showProjectDetail(
     <a class="btn" href="./index.html?project_id=${project.id}">
       ตีแปลง / แก้ไขแปลง
     </a>
-  `);
+  `;
 }
 
 function showParcelDetail(parcel){
   const project =
-    allProjects.find(
-      p => p.id === parcel.project_id
-    );
+    allProjects.find(p => p.id === parcel.project_id);
 
-  showDetail(`
+  document.getElementById('parcelDetail').className = '';
+  document.getElementById('parcelDetail').innerHTML = `
     <div class="detail-row"><b>โครงการ</b><span>${project ? project.project_name : '-'}</span></div>
     <div class="detail-row"><b>ชื่อแปลง</b><span>${parcel.parcel_name || '-'}</span></div>
     <div class="detail-row"><b>เลขเอกสาร</b><span>${parcel.docno || '-'}</span></div>
     <div class="detail-row"><b>ผู้ขอเช่า</b><span>${parcel.owner || '-'}</span></div>
     <div class="detail-row"><b>เนื้อที่</b><span>${formatArea(parcel.area_sqm)}</span></div>
     <div class="detail-row"><b>หมายเหตุ</b><span>${parcel.note || '-'}</span></div>
-  `);
-}
-
-function drawParcels(){
-
-  parcelLayers.forEach(
-    layer => map.removeLayer(layer)
-  );
-
-  parcelLayers = [];
-
-  const colors =
-    [
-      '#8b0000',
-      '#2563eb',
-      '#f59e0b',
-      '#22c55e',
-      '#9333ea',
-      '#ec4899'
-    ];
-
-  allParcels.forEach((parcel,index) => {
-
-    if(!parcel.geojson) return;
-
-    const layer =
-      L.geoJSON(
-        parcel.geojson,
-        {
-          style:{
-            color:colors[index % colors.length],
-            weight:2,
-            fillColor:colors[index % colors.length],
-            fillOpacity:.30
-          }
-        }
-      ).addTo(map);
-
-    layer.on(
-      'click',
-      () => showParcelDetail(parcel)
-    );
-
-    parcelLayers.push(layer);
-
-  });
-
-  if(parcelLayers.length > 0){
-    const group =
-      L.featureGroup(parcelLayers);
-
-    map.fitBounds(
-      group.getBounds(),
-      {
-        padding:[25,25]
-      }
-    );
-  }
+  `;
 }
 
 function zoomToProject(projectId){
-
   const layers = [];
 
   allParcels.forEach(parcel => {
-
-    if(
-      parcel.project_id !== projectId ||
-      !parcel.geojson
-    ) {
-      return;
-    }
-
-    layers.push(
-      L.geoJSON(parcel.geojson)
-    );
-
+    if(parcel.project_id !== projectId || !parcel.geojson) return;
+    layers.push(L.geoJSON(parcel.geojson));
   });
 
   if(layers.length > 0){
+    const group = L.featureGroup(layers);
+    map.fitBounds(group.getBounds(), { padding:[35,35] });
+  }
+}
 
-    const group =
-      L.featureGroup(layers);
+function renderProjectList(filterText = ''){
+  const box = document.getElementById('projectList');
+  box.innerHTML = '';
 
-    map.fitBounds(
-      group.getBounds(),
-      {
-        padding:[40,40]
+  const keyword = filterText.trim().toLowerCase();
+
+  const filtered =
+    allProjects.filter(project => {
+      const text = [
+        project.project_name,
+        project.province,
+        project.station,
+        project.region,
+        project.status,
+        project.owner
+      ].join(' ').toLowerCase();
+
+      return text.includes(keyword);
+    });
+
+  if(filtered.length === 0){
+    box.innerHTML = '<div class="empty">ไม่พบโครงการ</div>';
+    return;
+  }
+
+  filtered.forEach(project => {
+    const parcels =
+      allParcels.filter(p => p.project_id === project.id);
+
+    const totalArea =
+      parcels.reduce((sum,p)=>sum + Number(p.area_sqm || 0),0);
+
+    const div = document.createElement('div');
+    div.className = 'project-item';
+
+    div.innerHTML = `
+      <b>${project.project_name || '-'}</b>
+      <span>${project.province || '-'} / ${project.station || '-'}</span>
+      <span>แปลง: ${parcels.length} | พื้นที่: ${formatArea(totalArea)}</span>
+      <span class="badge ${statusClass(project.status)}">${project.status || '-'}</span>
+    `;
+
+    div.onclick = function(){
+      document.querySelectorAll('.project-item')
+        .forEach(x => x.classList.remove('active'));
+
+      div.classList.add('active');
+      zoomToProject(project.id);
+      showProjectDetail(project);
+    };
+
+    box.appendChild(div);
+  });
+}
+
+function drawParcels(){
+  parcelLayers.forEach(layer => map.removeLayer(layer));
+  parcelLayers = [];
+
+  const colors = ['#8b0000','#2563eb','#f59e0b','#22c55e','#9333ea'];
+
+  allParcels.forEach((parcel,index) => {
+    if(!parcel.geojson) return;
+
+    const layer = L.geoJSON(parcel.geojson, {
+      style:{
+        color:colors[index % colors.length],
+        weight:2,
+        fillColor:colors[index % colors.length],
+        fillOpacity:.30
       }
-    );
+    }).addTo(map);
 
+    layer.on('click', function(){
+      showParcelDetail(parcel);
+    });
+
+    parcelLayers.push(layer);
+  });
+
+  if(parcelLayers.length > 0){
+    const group = L.featureGroup(parcelLayers);
+    map.fitBounds(group.getBounds(), { padding:[25,25] });
   }
 }
 
 async function loadDashboard(){
-
   const projectsResult =
     await supabaseClient
       .from('survey_projects')
       .select('*')
-      .order(
-        'created_at',
-        {
-          ascending:false
-        }
-      );
+      .order('created_at', { ascending:false });
 
   const parcelsResult =
     await supabaseClient
       .from('survey_project_parcels')
       .select('*');
 
-  allProjects =
-    projectsResult.data || [];
-
-  allParcels =
-    parcelsResult.data || [];
+  allProjects = projectsResult.data || [];
+  allParcels = parcelsResult.data || [];
 
   document.getElementById('totalProjects').textContent =
     allProjects.length;
@@ -730,32 +357,28 @@ async function loadDashboard(){
     allParcels.length;
 
   document.getElementById('doing').textContent =
-    allProjects.filter(
-      x => x.status === 'กำลังสำรวจ'
-    ).length;
+    allProjects.filter(x => x.status === 'กำลังสำรวจ').length;
 
   document.getElementById('done').textContent =
-    allProjects.filter(
-      x => x.status === 'เสร็จสิ้น'
-    ).length;
+    allProjects.filter(x => x.status === 'เสร็จสิ้น').length;
+
+  const totalArea =
+    allParcels.reduce((sum,p)=>sum + Number(p.area_sqm || 0),0);
+
+  document.getElementById('totalArea').textContent =
+    formatArea(totalArea);
 
   renderProjectList();
   drawParcels();
 
-  setTimeout(
-    () => map.invalidateSize(),
-    300
-  );
+  setTimeout(()=>map.invalidateSize(),300);
 }
 
 document
   .getElementById('projectSearch')
-  .addEventListener(
-    'input',
-    function(){
-      renderProjectList(this.value);
-    }
-  );
+  .addEventListener('input', function(){
+    renderProjectList(this.value);
+  });
 
 loadDashboard();
 </script>
