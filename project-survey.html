@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Project Survey</title>
+
 <style>
 body{margin:0;font-family:Arial;background:#f3f4f6;color:#111827}
 .header{height:70px;background:#8b0000;color:white;display:flex;align-items:center;justify-content:space-between;padding:0 32px}
@@ -15,7 +16,9 @@ button{margin-top:16px;background:#8b0000;color:white;border:none;padding:13px 2
 table{width:100%;border-collapse:collapse}
 th,td{padding:12px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
 th{background:#f9fafb}
-.delete-btn{margin:0;padding:8px 14px}
+.action-btn{margin:0 4px 0 0;padding:8px 12px}
+.edit-btn{background:#374151}
+.delete-btn{background:#b91c1c}
 </style>
 </head>
 
@@ -55,7 +58,9 @@ th{background:#f9fafb}
       <input id="note" placeholder="หมายเหตุ">
     </div>
 
-    <button id="saveButton" type="button" onclick="addProject()">บันทึกโครงการ</button>
+    <button id="saveButton" type="button" onclick="saveProject()">
+      บันทึกโครงการ
+    </button>
   </div>
 
   <div class="table">
@@ -81,73 +86,39 @@ th{background:#f9fafb}
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-let editIndex = null;
-function getData(){
-  return JSON.parse(localStorage.getItem('surveyProjects') || '[]');
-}
+const SUPABASE_URL =
+  'https://fuvnqxiwiniigabzaejg.supabase.co';
 
-function saveData(data){
-  localStorage.setItem('surveyProjects', JSON.stringify(data));
-}
+const SUPABASE_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1dm5xeGl3aW5paWdhYnphZWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjMxNjEsImV4cCI6MjA5NDg5OTE2MX0.7AECH9EkMjGHFZYh6SIrpVo1ulWrf_SK5Ui-AYpCdNg';
 
-function addProject(){
-  const project = {
-    projectName: document.getElementById('projectName').value,
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+let editId = null;
+
+function getFormData() {
+  return {
+    project_name: document.getElementById('projectName').value,
     province: document.getElementById('province').value,
     station: document.getElementById('station').value,
     region: document.getElementById('region').value,
     status: document.getElementById('projectStatus').value,
     owner: document.getElementById('owner').value,
-    surveyDate: document.getElementById('surveyDate').value,
+    survey_date: document.getElementById('surveyDate').value || null,
     note: document.getElementById('note').value
   };
-
-  const data = getData();
-
-  if (editIndex === null) {
-    data.push(project);
-  } else {
-    data[editIndex] = project;
-    editIndex = null;
-    document.getElementById('saveButton').textContent = 'บันทึกโครงการ';
-  }
-
-  saveData(data);
-  clearForm();
-  renderTable();
 }
 
-function deleteProject(index){
-  if (!confirm('ต้องการลบโครงการนี้ใช่หรือไม่?')) {
-    return;
-  }
+function clearForm() {
+  editId = null;
 
-  const data = getData();
-  data.splice(index, 1);
-  saveData(data);
-  renderTable();
-}
-
-function editProject(index){
-  const data = getData();
-  const item = data[index];
-
-  document.getElementById('projectName').value = item.projectName || '';
-  document.getElementById('province').value = item.province || '';
-  document.getElementById('station').value = item.station || '';
-  document.getElementById('region').value = item.region || 'ภาคเหนือ';
-  document.getElementById('projectStatus').value = item.status || 'รอดำเนินการ';
-  document.getElementById('owner').value = item.owner || '';
-  document.getElementById('surveyDate').value = item.surveyDate || '';
-  document.getElementById('note').value = item.note || '';
-
-  editIndex = index;
-  document.getElementById('saveButton').textContent = 'อัปเดตโครงการ';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function clearForm(){
   document.getElementById('projectName').value = '';
   document.getElementById('province').value = '';
   document.getElementById('station').value = '';
@@ -156,31 +127,84 @@ function clearForm(){
   document.getElementById('owner').value = '';
   document.getElementById('surveyDate').value = '';
   document.getElementById('note').value = '';
+
+  document.getElementById('saveButton').textContent =
+    'บันทึกโครงการ';
 }
 
+async function saveProject() {
+  const project = getFormData();
 
-function renderTable(){
-  const data = getData();
-  const table = document.getElementById('projectTable');
+  let result;
+
+  if (editId) {
+    result =
+      await supabaseClient
+        .from('survey_projects')
+        .update(project)
+        .eq('id', editId);
+  } else {
+    result =
+      await supabaseClient
+        .from('survey_projects')
+        .insert([project]);
+  }
+
+  if (result.error) {
+    console.error(result.error);
+    alert('บันทึกไม่สำเร็จ');
+    return;
+  }
+
+  clearForm();
+  loadProjects();
+}
+
+async function loadProjects() {
+  const { data, error } =
+    await supabaseClient
+      .from('survey_projects')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(error);
+    alert('โหลดข้อมูลไม่สำเร็จ');
+    return;
+  }
+
+  renderTable(data || []);
+}
+
+function renderTable(data) {
+  const table =
+    document.getElementById('projectTable');
 
   table.innerHTML = '';
 
-  data.forEach(function(item, index){
+  data.forEach(function(item) {
     table.innerHTML += `
       <tr>
-        <td>${item.projectName || '-'}</td>
+        <td>${item.project_name || '-'}</td>
         <td>${item.region || '-'}</td>
         <td>${item.province || '-'}</td>
         <td>${item.station || '-'}</td>
-        <td>${item.surveyDate || '-'}</td>
+        <td>${item.survey_date || '-'}</td>
         <td>${item.status || '-'}</td>
         <td>${item.owner || '-'}</td>
         <td>
-         <button class="delete-btn" onclick="editProject(${index})">
+<button class="action-btn edit-btn"
+        onclick="editProject('${item.id}')">
   แก้ไข
 </button>
 
-<button class="delete-btn" onclick="deleteProject(${index})">
+<button class="action-btn"
+        onclick="openMapProject('${item.id}')">
+  ตีแปลง
+</button>
+
+<button class="action-btn delete-btn"
+        onclick="deleteProject('${item.id}')">
   ลบ
 </button>
         </td>
@@ -189,7 +213,70 @@ function renderTable(){
   });
 }
 
-renderTable();
+async function editProject(id) {
+  const { data, error } =
+    await supabaseClient
+      .from('survey_projects')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+  if (error) {
+    console.error(error);
+    alert('โหลดข้อมูลเพื่อแก้ไขไม่สำเร็จ');
+    return;
+  }
+
+  editId = id;
+
+  document.getElementById('projectName').value = data.project_name || '';
+  document.getElementById('province').value = data.province || '';
+  document.getElementById('station').value = data.station || '';
+  document.getElementById('region').value = data.region || 'ภาคเหนือ';
+  document.getElementById('projectStatus').value = data.status || 'รอดำเนินการ';
+  document.getElementById('owner').value = data.owner || '';
+  document.getElementById('surveyDate').value = data.survey_date || '';
+  document.getElementById('note').value = data.note || '';
+
+  document.getElementById('saveButton').textContent =
+    'อัปเดตโครงการ';
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+
+
+function openMapProject(id) {
+  window.location.href = './index.html?project_id=' + id;
+}
+
+async function deleteProject(id) {
+  if (!confirm('ต้องการลบโครงการนี้ใช่หรือไม่?')) {
+    return;
+  }
+
+  const { error } =
+    await supabaseClient
+      .from('survey_projects')
+      .delete()
+      .eq('id', id);
+
+  if (error) {
+    console.error(error);
+    alert('ลบไม่สำเร็จ');
+    return;
+  }
+function openMapProject(projectId){
+
+  window.location.href =
+    './index.html?project_id=' +
+    projectId;
+
+}
+  loadProjects();
+}
+
+loadProjects();
 </script>
 
 </body>

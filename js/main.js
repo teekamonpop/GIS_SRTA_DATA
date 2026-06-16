@@ -40,6 +40,22 @@ async function requireLogin() {
 
 requireLogin();
 
+
+// ====================
+// CURRENT PROJECT
+// ====================
+
+const urlParams =
+  new URLSearchParams(window.location.search);
+
+const currentProjectId =
+  urlParams.get('project_id');
+
+console.log(
+  'CURRENT PROJECT ID:',
+  currentProjectId
+);
+
 // ====================
 // CREATE MAP
 // ====================
@@ -306,14 +322,24 @@ async function saveDrawings() {
 
   try {
 
+    if (!currentProjectId) {
+      console.warn(
+        'ไม่มี project_id ระบบจะไม่บันทึกแปลงเข้า Project'
+      );
+      return;
+    }
+
     const deleteResult =
       await supabase
-        .from('parcels')
+        .from('survey_project_parcels')
         .delete()
-        .not('id', 'is', null);
+        .eq('project_id', currentProjectId);
 
     if (deleteResult.error) {
-      console.error('DELETE SUPABASE ERROR:', deleteResult.error);
+      console.error(
+        'DELETE PROJECT PARCEL ERROR:',
+        deleteResult.error
+      );
       return;
     }
 
@@ -321,12 +347,12 @@ async function saveDrawings() {
 
     drawnItems.eachLayer(function (layer) {
 
-  if (
-    !(layer instanceof L.Polygon) &&
-    !(layer instanceof L.Rectangle)
-  ) {
-    return;
-  }
+      if (
+        !(layer instanceof L.Polygon) &&
+        !(layer instanceof L.Rectangle)
+      ) {
+        return;
+      }
 
       const geojson =
         layer.toGeoJSON();
@@ -340,7 +366,8 @@ async function saveDrawings() {
         turf.area(geojson);
 
       features.push({
-        name: props.name || '',
+        project_id: currentProjectId,
+        parcel_name: props.name || '',
         owner: props.owner || '',
         note: props.note || '',
         docno: props.docno || '',
@@ -351,27 +378,34 @@ async function saveDrawings() {
     });
 
     if (features.length === 0) {
-
-  console.warn(
-    'ไม่มี polygon สำหรับ save'
-  );
-
-  return;
-
-}
+      console.warn('ไม่มี polygon สำหรับ save');
+      return;
+    }
 
     const insertResult =
       await supabase
-        .from('parcels')
+        .from('survey_project_parcels')
         .insert(features);
 
     if (insertResult.error) {
-      console.error('INSERT SUPABASE ERROR:', insertResult.error);
+      console.error(
+        'INSERT PROJECT PARCEL ERROR:',
+        insertResult.error
+      );
+      return;
     }
+
+    console.log(
+      'SAVE PROJECT PARCEL SUCCESS:',
+      features.length
+    );
 
   } catch (error) {
 
-    console.error('SAVE DRAWINGS ERROR:', error);
+    console.error(
+      'SAVE DRAWINGS ERROR:',
+      error
+    );
 
   }
 
@@ -2226,6 +2260,26 @@ if (logoutBtnGIS) {
 
       window.location.href =
         './login.html';
+
+    }
+  );
+
+}
+
+
+const backBtn =
+  document.getElementById(
+    'back-project-btn'
+  );
+
+if (backBtn) {
+
+  backBtn.addEventListener(
+    'click',
+    () => {
+
+      window.location.href =
+        './project-survey.html';
 
     }
   );
