@@ -1,6 +1,6 @@
-/* ====================
-RESET
-==================== */
+/* ========================================
+   RESET
+   ======================================== */
 
 html,
 body {
@@ -9,13 +9,12 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-family:'Noto Sans Thai',sans-serif;
+  font-family: Arial, sans-serif;
 }
 
-
-/* ====================
-MAP
-==================== */
+/* ========================================
+   MAP
+   ======================================== */
 
 #map {
   position: fixed;
@@ -35,10 +34,9 @@ MAP
   height: 256px !important;
 }
 
-
-/* ====================
-SEARCH BOX
-==================== */
+/* ========================================
+   SEARCH BOX
+   ======================================== */
 
 .search-box {
   position: absolute;
@@ -49,7 +47,7 @@ SEARCH BOX
   background: #ffffff;
   padding: 10px;
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
   pointer-events: auto;
 }
 
@@ -62,10 +60,9 @@ SEARCH BOX
   outline: none;
 }
 
-
-/* ====================
-TOP RIGHT TOOLS
-==================== */
+/* ========================================
+   TOP RIGHT TOOLS
+   ======================================== */
 
 .top-right-tools {
   position: absolute;
@@ -88,7 +85,7 @@ TOP RIGHT TOOLS
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.16);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.16);
 }
 
 #locate-button {
@@ -96,10 +93,9 @@ TOP RIGHT TOOLS
   color: #ffffff;
 }
 
-
-/* ====================
-ATTRIBUTE TABLE
-==================== */
+/* ========================================
+   ATTRIBUTE TABLE
+   ======================================== */
 
 .attribute-table {
   position: absolute;
@@ -110,7 +106,7 @@ ATTRIBUTE TABLE
   max-height: 260px;
   background: #ffffff;
   border-radius: 14px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
   z-index: 9999;
   overflow: auto;
   display: none;
@@ -156,15 +152,14 @@ ATTRIBUTE TABLE
   background: #f3f4f6;
 }
 
-
-/* ====================
-PARCEL FORM MODAL
-==================== */
+/* ========================================
+   PARCEL FORM MODAL
+   ======================================== */
 
 .parcel-form-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0, 0, 0, 0.45);
   z-index: 20000;
   display: none;
   align-items: center;
@@ -177,7 +172,7 @@ PARCEL FORM MODAL
   background: #ffffff;
   border-radius: 18px;
   padding: 22px;
-  box-shadow: 0 20px 70px rgba(0,0,0,0.38);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.38);
 }
 
 .parcel-form-card h3 {
@@ -236,10 +231,9 @@ PARCEL FORM MODAL
   color: #ffffff;
 }
 
-
-/* ====================
-LEAFLET
-==================== */
+/* ========================================
+   LEAFLET
+   ======================================== */
 
 .leaflet-control-layers {
   display: none !important;
@@ -260,7 +254,7 @@ LEAFLET
   border-radius: 12px !important;
   padding: 10px 14px !important;
   font-size: 14px !important;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.35) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
 }
 
 .leaflet-editing-icon {
@@ -282,10 +276,9 @@ LEAFLET
   line-height: 1.5;
 }
 
-
-/* ====================
-CUSTOM LAYER PANEL
-==================== */
+/* ========================================
+   CUSTOM LAYER PANEL
+   ======================================== */
 
 #layerToggle {
   position: absolute;
@@ -300,7 +293,7 @@ CUSTOM LAYER PANEL
   font-size: 25px;
   z-index: 99999;
   cursor: pointer;
-  box-shadow: 0 12px 30px rgba(0,0,0,.35);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
 }
 
 #layerPanel {
@@ -313,7 +306,7 @@ CUSTOM LAYER PANEL
   border-radius: 18px;
   overflow: hidden;
   z-index: 99998;
-  box-shadow: 0 18px 45px rgba(0,0,0,.35);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
 }
 
 #layerPanel.closed {
@@ -432,10 +425,9 @@ CUSTOM LAYER PANEL
   cursor: pointer;
 }
 
-
-/* ====================
-RESPONSIVE
-==================== */
+/* ========================================
+   RESPONSIVE
+   ======================================== */
 
 @media (max-width: 768px) {
   .search-box {
@@ -466,7 +458,6 @@ RESPONSIVE
   }
 }
 
-
 .layer-body {
   overflow-y: scroll !important;
 }
@@ -489,23 +480,145 @@ RESPONSIVE
   background: #5f0000;
 }
 
-h1,
-h2,
-h3{
-  font-weight:700;
-  letter-spacing:-0.3px;
+/* ==============================
+   PARCEL FORM — FINAL
+============================== */
+
+.parcel-form-card {
+  width: min(680px, calc(100vw - 32px));
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 24px;
 }
 
-.project-item b{
-  font-weight:700;
+.parcel-form-section {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fafafa;
 }
 
-.detail-row{
-  font-size:15px;
+.parcel-form-section h4 {
+  margin: 0 0 14px;
+  color: #8b0000;
+  font-size: 16px;
 }
 
-.card{
-  border:none;
-  border-radius:18px;
-  box-shadow:0 10px 30px rgba(0,0,0,.08);
+.parcel-form-card input[type="file"] {
+  width: 100%;
+  padding: 9px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 9px;
+  background: #ffffff;
 }
+
+.parcel-form-card small {
+  display: block;
+  margin-top: 7px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.parcel-form-actions {
+  position: sticky;
+  bottom: -24px;
+  margin: 20px -24px -24px;
+  padding: 14px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+  z-index: 2;
+}
+
+/* ========================================
+   FINAL TOOLBAR STYLE
+   ======================================== */
+
+.top-right-tools {
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.top-right-tools button {
+  min-height: 40px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-family: "Sarabun", Arial, Tahoma, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+
+  color: #7f1d1d;
+  background: rgba(255, 255, 255, 0.96);
+
+  border: 1px solid rgba(127, 29, 29, 0.22);
+  border-radius: 10px;
+
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.16);
+  transition:
+    color 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.top-right-tools button:hover {
+  color: #ffffff;
+  background: #8b0000;
+  border-color: #8b0000;
+  transform: translateY(-1px);
+}
+
+#locate-button,
+#import-parcel-file {
+  color: #ffffff;
+  background: #8b0000;
+  border-color: #8b0000;
+}
+
+#locate-button:hover,
+#import-parcel-file:hover {
+  background: #650000;
+  border-color: #650000;
+}
+
+#back-project-btn {
+  color: #374151;
+  background: rgba(255, 255, 255, 0.96);
+  border-color: #d1d5db;
+}
+
+#back-project-btn:hover {
+  color: #ffffff;
+  background: #4b5563;
+  border-color: #4b5563;
+}
+
+#logout-button {
+  color: #ffffff;
+  background: #991b1b;
+  border-color: #991b1b;
+}
+
+#logout-button:hover {
+  background: #7f1d1d;
+  border-color: #7f1d1d;
+}
+
+@media (max-width: 1100px) {
+  .top-right-tools {
+    max-width: calc(100vw - 30px);
+  }
+
+  .top-right-tools button {
+    min-height: 38px;
+    padding: 0 11px;
+    font-size: 12px;
+  }
+}
+
+
