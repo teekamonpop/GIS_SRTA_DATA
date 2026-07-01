@@ -559,12 +559,106 @@ function formatThaiArea(squareMeters) {
 
   return {
     squareMeters: squareMeters.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 4,
     }),
 
     thaiArea: rai + " ไร่ - " + ngan + " งาน - " + wa.toFixed(2) + " วา",
   };
+}
+
+
+// ====================
+// OFFICIAL / ORIGINAL AREA
+// ====================
+
+function parseAreaNumber(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const normalized = String(value)
+    .replace(/,/g, "")
+    .replace(/\s+/g, "")
+    .trim();
+
+  const parsed = Number(normalized);
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function getOfficialAreaFromProperties(properties) {
+  const props = properties || {};
+  const normalized = {};
+
+  Object.keys(props).forEach(function (key) {
+    const normalizedKey = String(key)
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+
+    normalized[normalizedKey] = {
+      key: key,
+      value: props[key],
+    };
+  });
+
+  const preferredKeys = [
+    "officialareasqm",
+    "sumarea",
+    "areasqm",
+    "shapearea",
+    "shapeareasqm",
+    "gisarea",
+    "cadarea",
+  ];
+
+  for (const preferredKey of preferredKeys) {
+    const match = normalized[preferredKey];
+
+    if (!match) {
+      continue;
+    }
+
+    const area = parseAreaNumber(match.value);
+
+    if (area !== null) {
+      return {
+        area: area,
+        fieldName: match.key,
+      };
+    }
+  }
+
+  return {
+    area: null,
+    fieldName: null,
+  };
+}
+
+function getLayerAreaInfo(layer) {
+  const calculatedArea = turf.area(layer.toGeoJSON());
+  const officialArea = parseAreaNumber(layer._officialAreaSqm);
+  const source = layer._areaSource || "WEB_CALCULATED";
+
+  return {
+    officialArea: officialArea,
+    calculatedArea: calculatedArea,
+    displayArea: officialArea !== null ? officialArea : calculatedArea,
+    source: officialArea !== null ? source : "WEB_CALCULATED",
+    isOfficial: officialArea !== null,
+  };
+}
+
+function getAreaSourceLabel(source) {
+  const value = String(source || "");
+
+  if (value === "DWG") return "ไฟล์ DWG ต้นฉบับ";
+  if (value === "WEB_DRAW") return "วาดบนหน้าเว็บ";
+  if (value === "WEB_CALCULATED") return "คำนวณจากรูปแปลงบนเว็บ";
+  if (value.startsWith("SHP:")) return "ฟิลด์ " + value.slice(4) + " จาก Shapefile";
+  if (value.startsWith("KML:")) return "ฟิลด์ " + value.slice(4) + " จาก KML/KMZ";
+
+  return value || "คำนวณจากรูปแปลงบนเว็บ";
 }
 
 // ====================
@@ -877,7 +971,15 @@ async function saveDrawings() {
 
       layer._documentFiles = {};
 
-      const area = turf.area(geojson);
+      const calculatedArea = turf.area(geojson);
+      const officialArea = parseAreaNumber(layer._officialAreaSqm);
+      const displayArea = officialArea !== null ? officialArea : calculatedArea;
+      const areaSource =
+        officialArea !== null
+          ? layer._areaSource || "ORIGINAL_FILE"
+          : layer._areaSource || "WEB_CALCULATED";
+
+      layer._calculatedAreaSqm = calculatedArea;
 
       features.push({
         project_id: currentProjectId,
@@ -885,7 +987,10 @@ async function saveDrawings() {
         owner: props.owner || "",
         note: props.note || "",
         docno: props.docno || "",
-        area_sqm: area,
+        area_sqm: displayArea,
+        official_area_sqm: officialArea,
+        calculated_area_sqm: calculatedArea,
+        area_source: areaSource,
         geojson: geojson,
         cover_photo_path: coverPhotoPath,
 
@@ -984,6 +1089,14 @@ async function loadDrawings() {
           };
 
           layer._parcelId = item.id;
+
+          layer._officialAreaSqm = parseAreaNumber(item.official_area_sqm);
+          layer._calculatedAreaSqm = parseAreaNumber(item.calculated_area_sqm);
+          layer._areaSource =
+            item.area_source ||
+            (layer._officialAreaSqm !== null
+              ? "ORIGINAL_FILE"
+              : "WEB_CALCULATED");
 
           layer._coverPhotoPath = item.cover_photo_path || null;
 
@@ -1150,12 +1263,8 @@ function openParcelForm(layer) {
 // ====================
 
 function buildParcelPopupContent(layer) {
-  const geojson = layer.toGeoJSON();
-
-  const area = turf.area(geojson);
-
-  const areaText = formatThaiArea(area);
-
+  const areaInfo = getLayerAreaInfo(layer);
+  const areaText = formatThaiArea(areaInfo.displayArea);
   const props =
     layer.feature && layer.feature.properties ? layer.feature.properties : {};
 
@@ -1329,6 +1438,11 @@ map.on(L.Draw.Event.CREATED, async function (event) {
   drawnItems.addLayer(layer);
 
   snapGuideLayers.addLayer(layer);
+
+  if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
+    layer._officialAreaSqm = null;
+    layer._areaSource = "WEB_DRAW";
+  }
 
   // ====================
   // SNAP POLYGON
@@ -2011,6 +2125,74 @@ function convertDwgCoordinatesToWgs84(coordinates, coordinateMode) {
   );
 }
 
+
+function calculateClosedCadPolylineArea(entity) {
+  const rawVertices = (entity.vertices || []).filter(isFiniteCadPoint);
+
+  if (rawVertices.length < 3) {
+    return null;
+  }
+
+  const vertices = [...rawVertices];
+
+  if (pointsAreEqual(vertices[0], vertices[vertices.length - 1])) {
+    vertices.pop();
+  }
+
+  if (vertices.length < 3) {
+    return null;
+  }
+
+  let signedDoubleArea = 0;
+  let signedArcArea = 0;
+
+  for (let index = 0; index < vertices.length; index++) {
+    const start = vertices[index];
+    const end = vertices[(index + 1) % vertices.length];
+    const x1 = Number(start.x);
+    const y1 = Number(start.y);
+    const x2 = Number(end.x);
+    const y2 = Number(end.y);
+
+    signedDoubleArea += x1 * y2 - x2 * y1;
+
+    const bulge = Number(start.bulge || 0);
+
+    if (Number.isFinite(bulge) && Math.abs(bulge) > 1e-12) {
+      const chordLength = Math.hypot(x2 - x1, y2 - y1);
+      const theta = 4 * Math.atan(bulge);
+      const radius =
+        (chordLength * (1 + bulge * bulge)) /
+        (4 * Math.abs(bulge));
+
+      signedArcArea += 0.5 * radius * radius * (theta - Math.sin(theta));
+    }
+  }
+
+  const area = Math.abs(signedDoubleArea / 2 + signedArcArea);
+
+  return Number.isFinite(area) && area > 0 ? area : null;
+}
+
+function getDwgEntityArea(entity) {
+  const candidateValues = [
+    entity.area,
+    entity.Area,
+    entity.areaValue,
+    entity.area_value,
+  ];
+
+  for (const candidate of candidateValues) {
+    const area = parseAreaNumber(candidate);
+
+    if (area !== null) {
+      return area;
+    }
+  }
+
+  return calculateClosedCadPolylineArea(entity);
+}
+
 async function readDwgAsGeoJSON(file) {
   const dwgLibrary = await loadDwgLibrary();
   const dwgReader = await getDwgReader();
@@ -2050,8 +2232,11 @@ async function readDwgAsGeoJSON(file) {
       );
     }
 
+    const selectedPolyline = closedPolylines[0];
+    const originalDwgArea = getDwgEntityArea(selectedPolyline);
+
     const cadCoordinates = extractClosedPolylineCoordinates(
-      closedPolylines[0],
+      selectedPolyline,
     );
 
     if (cadCoordinates.length < 4) {
@@ -2074,7 +2259,9 @@ async function readDwgAsGeoJSON(file) {
       properties: {
         name: file.name.replace(/\.dwg$/i, ""),
         source: "DWG",
-        layer: closedPolylines[0].layer || "",
+        layer: selectedPolyline.layer || "",
+        official_area_sqm: originalDwgArea,
+        area_source: "DWG",
       },
       geometry: {
         type: "Polygon",
@@ -2134,6 +2321,27 @@ function addImportedGeoJSONToProject(geojson, sourceFileName) {
       }
 
       const properties = feature.properties || {};
+      const originalAreaResult = getOfficialAreaFromProperties(properties);
+      const sourceExtension = sourceFileName.split(".").pop().toLowerCase();
+      const explicitOfficialArea = parseAreaNumber(
+        properties.official_area_sqm,
+      );
+      const officialArea =
+        explicitOfficialArea !== null
+          ? explicitOfficialArea
+          : originalAreaResult.area;
+
+      let areaSource = properties.area_source || "";
+
+      if (!areaSource && officialArea !== null) {
+        if (sourceExtension === "zip") {
+          areaSource = "SHP:" + (originalAreaResult.fieldName || "AREA");
+        } else if (sourceExtension === "kml" || sourceExtension === "kmz") {
+          areaSource = "KML:" + (originalAreaResult.fieldName || "AREA");
+        } else if (sourceExtension === "dwg") {
+          areaSource = "DWG";
+        }
+      }
 
       layer.feature = {
         type: "Feature",
@@ -2155,6 +2363,11 @@ function addImportedGeoJSONToProject(geojson, sourceFileName) {
 
         geometry: feature.geometry,
       };
+
+      layer._officialAreaSqm = officialArea;
+      layer._calculatedAreaSqm = turf.area(feature);
+      layer._areaSource =
+        officialArea !== null ? areaSource || "ORIGINAL_FILE" : "WEB_CALCULATED";
 
       layer._documentFiles = {};
       layer._documentPaths = {};
@@ -2601,11 +2814,8 @@ function updateAttributeTable() {
     const props =
       layer.feature && layer.feature.properties ? layer.feature.properties : {};
 
-    const geojson = layer.toGeoJSON();
-
-    const area = turf.area(geojson);
-
-    const areaText = formatThaiArea(area);
+    const areaInfo = getLayerAreaInfo(layer);
+    const areaText = formatThaiArea(areaInfo.displayArea);
 
     // ====================
     // CREATE ROW

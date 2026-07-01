@@ -1,290 +1,1008 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<title>Project Survey</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Survey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/popup.css" />
 
-<style>
-body{margin:0;font-family:Arial;background:#f3f4f6;color:#111827}
-.header{height:70px;background:#8b0000;color:white;display:flex;align-items:center;justify-content:space-between;padding:0 32px}
-.header a{color:white;text-decoration:none;background:rgba(255,255,255,.15);padding:10px 16px;border-radius:10px}
-.container{padding:28px}
-.form,.table{background:white;border-radius:18px;padding:22px;box-shadow:0 8px 24px rgba(0,0,0,.08);margin-bottom:22px}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-input,select{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ddd;border-radius:10px}
-button{margin-top:16px;background:#8b0000;color:white;border:none;padding:13px 22px;border-radius:10px;font-weight:700;cursor:pointer}
-table{width:100%;border-collapse:collapse}
-th,td{padding:12px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
-th{background:#f9fafb}
-.action-btn{margin:0 4px 0 0;padding:8px 12px}
-.edit-btn{background:#374151}
-.delete-btn{background:#b91c1c}
-</style>
-    <link rel="stylesheet" href="./css/popup.css" />
-  </head>
+  <style>
+    :root {
+      --primary: #8b0000;
+      --primary-dark: #650000;
+      --primary-soft: #fdf2f2;
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+      --shadow-soft: 0 8px 22px rgba(15, 23, 42, 0.06);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
 
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Sarabun", Arial, Tahoma, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(139, 0, 0, 0.08), transparent 28%),
+        linear-gradient(180deg, #f8fafc 0%, #f2f4f7 100%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page-shell {
+      min-height: 100vh;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 28px;
+      background: linear-gradient(135deg, #8b0000, #aa1212);
+      color: #ffffff;
+      box-shadow: 0 10px 22px rgba(139, 0, 0, 0.18);
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+
+    .brand p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ghost-btn,
+    .primary-btn,
+    .secondary-btn,
+    .action-btn {
+      border: none;
+      cursor: pointer;
+      transition: 0.18s ease;
+      font-family: "Sarabun", Arial, Tahoma, sans-serif;
+      font-weight: 700;
+    }
+
+    .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 12px;
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    .ghost-btn:hover {
+      background: rgba(255, 255, 255, 0.24);
+      transform: translateY(-1px);
+    }
+
+    .content {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .hero-card,
+    .stats-card,
+    .section-card {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      padding: 26px 28px;
+      background:
+        linear-gradient(135deg, rgba(139, 0, 0, 0.06), rgba(255, 255, 255, 0.96)),
+        rgba(255, 255, 255, 0.96);
+    }
+
+    .hero-card h2 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.15;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .hero-card p {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 720px;
+    }
+
+    .hero-highlight {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 16px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--primary);
+      background: rgba(139, 0, 0, 0.08);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .stats-wrap {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .stats-card {
+      padding: 20px;
+    }
+
+    .stats-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .stats-value {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+
+    .stats-sub {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .section-card {
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .section-desc {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .count-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 84px;
+      min-height: 38px;
+      padding: 0 14px;
+      border-radius: 999px;
+      color: var(--primary);
+      background: rgba(139, 0, 0, 0.08);
+      font-size: 14px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #ffffff;
+      color: #111827;
+      font-size: 14px;
+      font-family: "Sarabun", Arial, Tahoma, sans-serif;
+      transition: 0.18s ease;
+      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: none;
+      border-color: rgba(139, 0, 0, 0.5);
+      box-shadow:
+        0 0 0 4px rgba(139, 0, 0, 0.08),
+        inset 0 1px 2px rgba(15, 23, 42, 0.03);
+    }
+
+    .field.span-2 {
+      grid-column: span 2;
+    }
+
+    .form-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 14px;
+      font-size: 14px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .primary-btn {
+      color: #ffffff;
+      background: linear-gradient(135deg, #8b0000, #a80c0c);
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-1px);
+      background: linear-gradient(135deg, #730000, #940909);
+    }
+
+    .secondary-btn {
+      color: #7f1d1d;
+      background: #ffffff;
+      border: 1px solid rgba(139, 0, 0, 0.18);
+    }
+
+    .secondary-btn:hover {
+      color: #ffffff;
+      background: #8b0000;
+    }
+
+    .form-hint {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .table-tools {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .table-search {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+    }
+
+    .search-box input {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 16px 0 44px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      font-size: 14px;
+      font-family: "Sarabun", Arial, Tahoma, sans-serif;
+    }
+
+    .search-box::before {
+      content: "⌕";
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+      font-size: 18px;
+      pointer-events: none;
+    }
+
+    .table-wrapper {
+      overflow: auto;
+      border: 1px solid #edf0f3;
+      border-radius: 18px;
+      background: #ffffff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1120px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      padding: 16px 14px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 800;
+      color: #374151;
+      background: linear-gradient(180deg, #f9fafb, #f3f4f6);
+      border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 14px;
+      font-size: 14px;
+      color: #111827;
+      border-bottom: 1px solid #edf0f3;
+      vertical-align: middle;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #fcfcfd;
+    }
+
+    tbody tr:hover {
+      background: #fff8f8;
+    }
+
+    .project-name {
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .muted-text {
+      color: var(--muted);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .status-pending {
+      color: #8b5e00;
+      background: #fff7db;
+    }
+
+    .status-active {
+      color: #1d4ed8;
+      background: #e8f0ff;
+    }
+
+    .status-urgent {
+      color: #b91c1c;
+      background: #fee2e2;
+    }
+
+    .status-done {
+      color: #166534;
+      background: #dcfce7;
+    }
+
+    .actions-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+    }
+
+    .edit-btn {
+      color: #ffffff;
+      background: #334155;
+    }
+
+    .edit-btn:hover {
+      background: #1f2937;
+      transform: translateY(-1px);
+    }
+
+    .map-btn {
+      color: #ffffff;
+      background: #8b0000;
+    }
+
+    .map-btn:hover {
+      background: #6f0000;
+      transform: translateY(-1px);
+    }
+
+    .delete-btn {
+      color: #ffffff;
+      background: #d12c2c;
+    }
+
+    .delete-btn:hover {
+      background: #b91c1c;
+      transform: translateY(-1px);
+    }
+
+    .empty-state {
+      padding: 28px 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .empty-state strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #374151;
+      font-size: 16px;
+    }
+
+    @media (max-width: 1200px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .topbar {
+        padding: 16px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .brand h1 {
+        font-size: 24px;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .section-card,
+      .hero-card,
+      .stats-card {
+        border-radius: 20px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .field.span-2 {
+        grid-column: span 1;
+      }
+
+      .table-tools {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .table-search {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
 <body>
+  <div class="page-shell">
+    <header class="topbar">
+      <div class="brand">
+        <h1>Project Survey</h1>
+        <p>จัดการโครงการสำรวจ เลือกแก้ไข ตีแปลง และติดตามสถานะได้ในหน้าเดียว</p>
+      </div>
 
-<div class="header">
-  <h2>Project Survey</h2>
-  <a href="./dashboard.html">กลับ Dashboard</a>
-</div>
+      <div class="topbar-actions">
+        <a class="ghost-btn" href="./dashboard.html">กลับ Dashboard</a>
+      </div>
+    </header>
 
-<div class="container">
+    <main class="content">
+      <section class="hero-grid">
+        <div class="hero-card">
+          <h2>บริหารโครงการสำรวจให้เป็นระเบียบมากขึ้น</h2>
+          <p>
+            เพิ่มโครงการใหม่ แก้ไขข้อมูลเดิม และเข้าสู่หน้าแผนที่เพื่อตีแปลงได้ทันที
+            พร้อมแสดงรายการทั้งหมดในตารางเดียว ช่วยให้ค้นหาและตรวจสอบงานได้สะดวกขึ้น
+          </p>
+          <div class="hero-highlight">ระบบนี้เชื่อมกับฐานข้อมูลโครงการสำรวจโดยตรง</div>
+        </div>
 
-  <div class="form">
-    <h3>เพิ่มโครงการสำรวจ</h3>
+        <div class="stats-wrap">
+          <div class="stats-card">
+            <div class="stats-label">จำนวนโครงการทั้งหมด</div>
+            <div class="stats-value" id="totalProjectsValue">0</div>
+            <div class="stats-sub">อัปเดตอัตโนมัติจากรายการโครงการปัจจุบัน</div>
+          </div>
 
-    <div class="grid">
-      <input id="projectName" placeholder="ชื่อโครงการ">
-      <input id="province" placeholder="จังหวัด">
-      <input id="station" placeholder="สถานี / พื้นที่">
+          <div class="stats-card">
+            <div class="stats-label">โครงการที่เสร็จสิ้น</div>
+            <div class="stats-value" id="doneProjectsValue">0</div>
+            <div class="stats-sub">นับจากสถานะ “เสร็จสิ้น” ของโครงการทั้งหมด</div>
+          </div>
+        </div>
+      </section>
 
-      <select id="region">
-        <option value="ภาคเหนือ">ภาคเหนือ</option>
-        <option value="ภาคตะวันออกเฉียงเหนือ">ภาคตะวันออกเฉียงเหนือ</option>
-        <option value="ภาคกลาง">ภาคกลาง</option>
-        <option value="ภาคใต้">ภาคใต้</option>
-      </select>
+      <section class="section-card">
+        <div class="section-head">
+          <div>
+            <h3 class="section-title">เพิ่มหรือแก้ไขโครงการสำรวจ</h3>
+            <p class="section-desc">
+              กรอกข้อมูลให้ครบก่อนบันทึก หากต้องการแก้ไขโครงการเดิม ให้กดปุ่ม “แก้ไข” จากตารางด้านล่าง
+            </p>
+          </div>
+        </div>
 
-      <select id="projectStatus">
-        <option value="รอดำเนินการ">รอดำเนินการ</option>
-        <option value="กำลังสำรวจ">กำลังสำรวจ</option>
-        <option value="เร่งด่วน">เร่งด่วน</option>
-        <option value="เสร็จสิ้น">เสร็จสิ้น</option>
-      </select>
+        <div class="form-grid">
+          <div class="field span-2">
+            <label for="projectName">ชื่อโครงการ</label>
+            <input id="projectName" placeholder="เช่น ย่านสถานีแม่น้ำ" />
+          </div>
 
-      <input id="owner" placeholder="ผู้รับผิดชอบ">
-      <input id="surveyDate" type="date">
-      <input id="note" placeholder="หมายเหตุ">
-    </div>
+          <div class="field">
+            <label for="province">จังหวัด</label>
+            <input id="province" placeholder="เช่น กรุงเทพมหานคร" />
+          </div>
 
-    <button id="saveButton" type="button" onclick="saveProject()">
-      บันทึกโครงการ
-    </button>
+          <div class="field">
+            <label for="station">สถานี / พื้นที่</label>
+            <input id="station" placeholder="เช่น สถานีแม่น้ำ" />
+          </div>
+
+          <div class="field">
+            <label for="region">ภาค</label>
+            <select id="region">
+              <option value="ภาคเหนือ">ภาคเหนือ</option>
+              <option value="ภาคตะวันออกเฉียงเหนือ">ภาคตะวันออกเฉียงเหนือ</option>
+              <option value="ภาคกลาง">ภาคกลาง</option>
+              <option value="ภาคใต้">ภาคใต้</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="projectStatus">สถานะ</label>
+            <select id="projectStatus">
+              <option value="รอดำเนินการ">รอดำเนินการ</option>
+              <option value="กำลังสำรวจ">กำลังสำรวจ</option>
+              <option value="เร่งด่วน">เร่งด่วน</option>
+              <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="owner">ผู้รับผิดชอบ</label>
+            <input id="owner" placeholder="เช่น กมลภพ" />
+          </div>
+
+          <div class="field">
+            <label for="surveyDate">วันที่สำรวจ</label>
+            <input id="surveyDate" type="date" />
+          </div>
+
+          <div class="field">
+            <label for="note">หมายเหตุ</label>
+            <input id="note" placeholder="บันทึกรายละเอียดเพิ่มเติม" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button id="saveButton" class="primary-btn" type="button" onclick="saveProject()">บันทึกโครงการ</button>
+          <button class="secondary-btn" type="button" onclick="clearForm()">ล้างข้อมูล</button>
+          <div class="form-hint">เมื่อบันทึกแล้ว โครงการจะแสดงในตารางด้านล่างทันที</div>
+        </div>
+      </section>
+
+      <section class="section-card">
+        <div class="section-head">
+          <div>
+            <h3 class="section-title">รายการโครงการ</h3>
+            <p class="section-desc">ค้นหาโครงการจากชื่อ พื้นที่ จังหวัด หรือผู้รับผิดชอบ และเข้าสู่หน้าแผนที่เพื่อตีแปลงได้ทันที</p>
+          </div>
+          <div class="count-pill" id="projectCountPill">0 รายการ</div>
+        </div>
+
+        <div class="table-tools">
+          <div class="table-search">
+            <div class="search-box">
+              <input id="projectSearch" type="text" placeholder="ค้นหาชื่อโครงการ จังหวัด สถานี หรือผู้รับผิดชอบ" />
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>ชื่อโครงการ</th>
+                <th>ภาค</th>
+                <th>จังหวัด</th>
+                <th>สถานี</th>
+                <th>วันที่สำรวจ</th>
+                <th>สถานะ</th>
+                <th>ผู้รับผิดชอบ</th>
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="projectTable"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <div class="table">
-    <h3>รายการโครงการ</h3>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/app-popup.js"></script>
 
-    <table>
-      <thead>
-        <tr>
-          <th>ชื่อโครงการ</th>
-          <th>ภาค</th>
-          <th>จังหวัด</th>
-          <th>สถานี</th>
-          <th>วันที่สำรวจ</th>
-          <th>สถานะ</th>
-          <th>ผู้รับผิดชอบ</th>
-          <th>จัดการ</th>
-        </tr>
-      </thead>
+  <script>
+    const SUPABASE_URL =
+      'https://fuvnqxiwiniigabzaejg.supabase.co';
 
-      <tbody id="projectTable"></tbody>
-    </table>
-  </div>
+    const SUPABASE_KEY =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1dm5xeGl3aW5paWdhYnphZWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjMxNjEsImV4cCI6MjA5NDg5OTE2MX0.7AECH9EkMjGHFZYh6SIrpVo1ulWrf_SK5Ui-AYpCdNg';
 
-</div>
+    const supabaseClient =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./js/app-popup.js"></script>
+    let editId = null;
+    let allProjects = [];
 
-<script>
-const SUPABASE_URL =
-  'https://fuvnqxiwiniigabzaejg.supabase.co';
+    function getFormData() {
+      return {
+        project_name: document.getElementById('projectName').value.trim(),
+        province: document.getElementById('province').value.trim(),
+        station: document.getElementById('station').value.trim(),
+        region: document.getElementById('region').value,
+        status: document.getElementById('projectStatus').value,
+        owner: document.getElementById('owner').value.trim(),
+        survey_date: document.getElementById('surveyDate').value || null,
+        note: document.getElementById('note').value.trim()
+      };
+    }
 
-const SUPABASE_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1dm5xeGl3aW5paWdhYnphZWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMjMxNjEsImV4cCI6MjA5NDg5OTE2MX0.7AECH9EkMjGHFZYh6SIrpVo1ulWrf_SK5Ui-AYpCdNg';
+    function clearForm() {
+      editId = null;
 
-const supabaseClient =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
+      document.getElementById('projectName').value = '';
+      document.getElementById('province').value = '';
+      document.getElementById('station').value = '';
+      document.getElementById('region').value = 'ภาคเหนือ';
+      document.getElementById('projectStatus').value = 'รอดำเนินการ';
+      document.getElementById('owner').value = '';
+      document.getElementById('surveyDate').value = '';
+      document.getElementById('note').value = '';
 
-let editId = null;
+      document.getElementById('saveButton').textContent = 'บันทึกโครงการ';
+    }
 
-function getFormData() {
-  return {
-    project_name: document.getElementById('projectName').value,
-    province: document.getElementById('province').value,
-    station: document.getElementById('station').value,
-    region: document.getElementById('region').value,
-    status: document.getElementById('projectStatus').value,
-    owner: document.getElementById('owner').value,
-    survey_date: document.getElementById('surveyDate').value || null,
-    note: document.getElementById('note').value
-  };
-}
+    function getStatusClass(status) {
+      if (status === 'เสร็จสิ้น') {
+        return 'status-done';
+      }
 
-function clearForm() {
-  editId = null;
+      if (status === 'กำลังสำรวจ') {
+        return 'status-active';
+      }
 
-  document.getElementById('projectName').value = '';
-  document.getElementById('province').value = '';
-  document.getElementById('station').value = '';
-  document.getElementById('region').value = 'ภาคเหนือ';
-  document.getElementById('projectStatus').value = 'รอดำเนินการ';
-  document.getElementById('owner').value = '';
-  document.getElementById('surveyDate').value = '';
-  document.getElementById('note').value = '';
+      if (status === 'เร่งด่วน') {
+        return 'status-urgent';
+      }
 
-  document.getElementById('saveButton').textContent =
-    'บันทึกโครงการ';
-}
+      return 'status-pending';
+    }
 
-async function saveProject() {
-  const project = getFormData();
+    function updateSummary(data) {
+      const total = data.length;
+      const done = data.filter(function (item) {
+        return item.status === 'เสร็จสิ้น';
+      }).length;
 
-  let result;
+      document.getElementById('totalProjectsValue').textContent = total;
+      document.getElementById('doneProjectsValue').textContent = done;
+      document.getElementById('projectCountPill').textContent = total + ' รายการ';
+    }
 
-  if (editId) {
-    result =
-      await supabaseClient
+    function formatDate(value) {
+      if (!value) {
+        return '-';
+      }
+
+      return value;
+    }
+
+    async function saveProject() {
+      const project = getFormData();
+
+      if (!project.project_name) {
+        await window.SRTAAppPopup.alert('กรุณากรอกชื่อโครงการ', 'ข้อมูลไม่ครบ', 'warning');
+        document.getElementById('projectName').focus();
+        return;
+      }
+
+      let result;
+
+      if (editId) {
+        result = await supabaseClient
+          .from('survey_projects')
+          .update(project)
+          .eq('id', editId);
+      } else {
+        result = await supabaseClient
+          .from('survey_projects')
+          .insert([project]);
+      }
+
+      if (result.error) {
+        console.error(result.error);
+        await window.SRTAAppPopup.alert('บันทึกข้อมูลไม่สำเร็จ', 'เกิดข้อผิดพลาด', 'error');
+        return;
+      }
+
+      await window.SRTAAppPopup.alert(
+        editId ? 'อัปเดตข้อมูลโครงการเรียบร้อยแล้ว' : 'บันทึกโครงการเรียบร้อยแล้ว',
+        'สำเร็จ',
+        'success'
+      );
+
+      clearForm();
+      loadProjects();
+    }
+
+    async function loadProjects() {
+      const { data, error } = await supabaseClient
         .from('survey_projects')
-        .update(project)
-        .eq('id', editId);
-  } else {
-    result =
-      await supabaseClient
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error(error);
+        await window.SRTAAppPopup.alert('โหลดข้อมูลโครงการไม่สำเร็จ', 'เกิดข้อผิดพลาด', 'error');
+        return;
+      }
+
+      allProjects = data || [];
+      renderTable(allProjects);
+      updateSummary(allProjects);
+    }
+
+    function renderTable(data) {
+      const table = document.getElementById('projectTable');
+      table.innerHTML = '';
+
+      if (!data.length) {
+        table.innerHTML = `
+          <tr>
+            <td colspan="8">
+              <div class="empty-state">
+                <strong>ยังไม่มีโครงการที่จะแสดง</strong>
+                เริ่มต้นโดยกรอกข้อมูลโครงการด้านบน แล้วกดปุ่ม “บันทึกโครงการ”
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      data.forEach(function (item) {
+        table.innerHTML += `
+          <tr>
+            <td>
+              <div class="project-name">${item.project_name || '-'}</div>
+            </td>
+            <td>${item.region || '<span class="muted-text">-</span>'}</td>
+            <td>${item.province || '<span class="muted-text">-</span>'}</td>
+            <td>${item.station || '<span class="muted-text">-</span>'}</td>
+            <td>${formatDate(item.survey_date)}</td>
+            <td>
+              <span class="status-badge ${getStatusClass(item.status)}">
+                ${item.status || '-'}
+              </span>
+            </td>
+            <td>${item.owner || '<span class="muted-text">-</span>'}</td>
+            <td>
+              <div class="actions-cell">
+                <button class="action-btn edit-btn" type="button" onclick="editProject('${item.id}')">แก้ไข</button>
+                <button class="action-btn map-btn" type="button" onclick="openMapProject('${item.id}')">ตีแปลง</button>
+                <button class="action-btn delete-btn" type="button" onclick="deleteProject('${item.id}')">ลบ</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function editProject(id) {
+      const { data, error } = await supabaseClient
         .from('survey_projects')
-        .insert([project]);
-  }
+        .select('*')
+        .eq('id', id)
+        .single();
 
-  if (result.error) {
-    console.error(result.error);
-    alert('บันทึกไม่สำเร็จ');
-    return;
-  }
+      if (error) {
+        console.error(error);
+        await window.SRTAAppPopup.alert('โหลดข้อมูลเพื่อแก้ไขไม่สำเร็จ', 'เกิดข้อผิดพลาด', 'error');
+        return;
+      }
 
-  clearForm();
-  loadProjects();
-}
+      editId = id;
 
-async function loadProjects() {
-  const { data, error } =
-    await supabaseClient
-      .from('survey_projects')
-      .select('*')
-      .order('created_at', { ascending: false });
+      document.getElementById('projectName').value = data.project_name || '';
+      document.getElementById('province').value = data.province || '';
+      document.getElementById('station').value = data.station || '';
+      document.getElementById('region').value = data.region || 'ภาคเหนือ';
+      document.getElementById('projectStatus').value = data.status || 'รอดำเนินการ';
+      document.getElementById('owner').value = data.owner || '';
+      document.getElementById('surveyDate').value = data.survey_date || '';
+      document.getElementById('note').value = data.note || '';
+      document.getElementById('saveButton').textContent = 'อัปเดตโครงการ';
 
-  if (error) {
-    console.error(error);
-    alert('โหลดข้อมูลไม่สำเร็จ');
-    return;
-  }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
-  renderTable(data || []);
-}
+    function openMapProject(projectId) {
+      window.location.href = './index.html?project_id=' + projectId;
+    }
 
-function renderTable(data) {
-  const table =
-    document.getElementById('projectTable');
+    async function deleteProject(id) {
+      const confirmed = await window.SRTAAppPopup.confirm(
+        'ต้องการลบโครงการนี้ใช่หรือไม่?',
+        'ยืนยันการลบโครงการ'
+      );
 
-  table.innerHTML = '';
+      if (!confirmed) {
+        return;
+      }
 
-  data.forEach(function(item) {
-    table.innerHTML += `
-      <tr>
-        <td>${item.project_name || '-'}</td>
-        <td>${item.region || '-'}</td>
-        <td>${item.province || '-'}</td>
-        <td>${item.station || '-'}</td>
-        <td>${item.survey_date || '-'}</td>
-        <td>${item.status || '-'}</td>
-        <td>${item.owner || '-'}</td>
-        <td>
-<button class="action-btn edit-btn"
-        onclick="editProject('${item.id}')">
-  แก้ไข
-</button>
+      const { error } = await supabaseClient
+        .from('survey_projects')
+        .delete()
+        .eq('id', id);
 
-<button class="action-btn"
-        onclick="openMapProject('${item.id}')">
-  ตีแปลง
-</button>
+      if (error) {
+        console.error(error);
+        await window.SRTAAppPopup.alert('ลบข้อมูลไม่สำเร็จ', 'เกิดข้อผิดพลาด', 'error');
+        return;
+      }
 
-<button class="action-btn delete-btn"
-        onclick="deleteProject('${item.id}')">
-  ลบ
-</button>
-        </td>
-      </tr>
-    `;
-  });
-}
+      await window.SRTAAppPopup.alert('ลบโครงการเรียบร้อยแล้ว', 'สำเร็จ', 'success');
+      loadProjects();
+    }
 
-async function editProject(id) {
-  const { data, error } =
-    await supabaseClient
-      .from('survey_projects')
-      .select('*')
-      .eq('id', id)
-      .single();
+    function filterProjects() {
+      const keyword = document.getElementById('projectSearch').value.trim().toLowerCase();
 
-  if (error) {
-    console.error(error);
-    alert('โหลดข้อมูลเพื่อแก้ไขไม่สำเร็จ');
-    return;
-  }
+      if (!keyword) {
+        renderTable(allProjects);
+        updateSummary(allProjects);
+        return;
+      }
 
-  editId = id;
+      const filtered = allProjects.filter(function (item) {
+        const combined = [
+          item.project_name,
+          item.province,
+          item.station,
+          item.owner,
+          item.region,
+          item.status,
+          item.note
+        ]
+          .join(' ')
+          .toLowerCase();
 
-  document.getElementById('projectName').value = data.project_name || '';
-  document.getElementById('province').value = data.province || '';
-  document.getElementById('station').value = data.station || '';
-  document.getElementById('region').value = data.region || 'ภาคเหนือ';
-  document.getElementById('projectStatus').value = data.status || 'รอดำเนินการ';
-  document.getElementById('owner').value = data.owner || '';
-  document.getElementById('surveyDate').value = data.survey_date || '';
-  document.getElementById('note').value = data.note || '';
+        return combined.includes(keyword);
+      });
 
-  document.getElementById('saveButton').textContent =
-    'อัปเดตโครงการ';
+      renderTable(filtered);
+      updateSummary(filtered);
+    }
 
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+    document.getElementById('projectSearch').addEventListener('input', filterProjects);
 
-
-
-function openMapProject(id) {
-  window.location.href = './index.html?project_id=' + id;
-}
-
-async function deleteProject(id) {
-  const confirmed = await window.SRTAAppPopup.confirm(
-    'ต้องการลบโครงการนี้ใช่หรือไม่?',
-    'ยืนยันการลบโครงการ'
-  );
-
-  if (!confirmed) {
-    return;
-  }
-
-  const { error } =
-    await supabaseClient
-      .from('survey_projects')
-      .delete()
-      .eq('id', id);
-
-  if (error) {
-    console.error(error);
-    alert('ลบไม่สำเร็จ');
-    return;
-  }
-function openMapProject(projectId){
-
-  window.location.href =
-    './index.html?project_id=' +
-    projectId;
-
-}
-  loadProjects();
-}
-
-loadProjects();
-</script>
-
+    loadProjects();
+  </script>
 </body>
 </html>
