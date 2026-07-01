@@ -20,7 +20,8 @@ th{background:#f9fafb}
 .edit-btn{background:#374151}
 .delete-btn{background:#b91c1c}
 </style>
-</head>
+    <link rel="stylesheet" href="./css/popup.css" />
+  </head>
 
 <body>
 
@@ -87,6 +88,7 @@ th{background:#f9fafb}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./js/app-popup.js"></script>
 
 <script>
 const SUPABASE_URL =
@@ -251,7 +253,12 @@ function openMapProject(id) {
 }
 
 async function deleteProject(id) {
-  if (!confirm('ต้องการลบโครงการนี้ใช่หรือไม่?')) {
+  const confirmed = await window.SRTAAppPopup.confirm(
+    'ต้องการลบโครงการนี้ใช่หรือไม่?',
+    'ยืนยันการลบโครงการ'
+  );
+
+  if (!confirmed) {
     return;
   }
 

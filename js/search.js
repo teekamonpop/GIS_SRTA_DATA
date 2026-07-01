@@ -183,7 +183,7 @@ async function searchPlaceFromNominatim(
       await response.json();
 
     if (!results || results.length === 0) {
-      alert('ไม่พบข้อมูล');
+      window.SRTAAppPopup.alert('ไม่พบข้อมูล');
       return;
     }
 
@@ -218,7 +218,7 @@ async function searchPlaceFromNominatim(
       error
     );
 
-    alert(
+    window.SRTAAppPopup.alert(
       'ค้นหาไม่สำเร็จ กรุณาลองใหม่'
     );
 

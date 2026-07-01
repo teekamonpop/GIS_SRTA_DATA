@@ -1682,6 +1682,431 @@ if (searchInput) {
 }
 
 // ====================
+// DWG IMPORT (CLOSED POLYLINE -> GEOJSON)
+// ====================
+
+const DWG_LIBRARY_VERSION = "0.7.7";
+
+const DWG_LIBRARY_BASE =
+  "https://cdn.jsdelivr.net/npm/@mlightcad/libredwg-web@" +
+  DWG_LIBRARY_VERSION;
+
+let dwgLibraryPromise = null;
+let dwgReaderPromise = null;
+
+async function loadDwgLibrary() {
+  if (!dwgLibraryPromise) {
+    dwgLibraryPromise = import(
+      DWG_LIBRARY_BASE + "/dist/libredwg-web.js"
+    );
+  }
+
+  return await dwgLibraryPromise;
+}
+
+async function getDwgReader() {
+  if (!dwgReaderPromise) {
+    dwgReaderPromise = (async function () {
+      const dwgLibrary = await loadDwgLibrary();
+
+      return await dwgLibrary.LibreDwg.create(
+        DWG_LIBRARY_BASE + "/wasm",
+      );
+    })();
+  }
+
+  return await dwgReaderPromise;
+}
+
+function isFiniteCadPoint(point) {
+  return (
+    point &&
+    Number.isFinite(Number(point.x)) &&
+    Number.isFinite(Number(point.y))
+  );
+}
+
+function pointsAreEqual(pointA, pointB, tolerance = 1e-7) {
+  if (!isFiniteCadPoint(pointA) || !isFiniteCadPoint(pointB)) {
+    return false;
+  }
+
+  return (
+    Math.abs(Number(pointA.x) - Number(pointB.x)) <= tolerance &&
+    Math.abs(Number(pointA.y) - Number(pointB.y)) <= tolerance
+  );
+}
+
+function isClosedDwgPolyline(entity) {
+  const vertices = Array.isArray(entity.vertices) ? entity.vertices : [];
+
+  if (vertices.length < 3) {
+    return false;
+  }
+
+  const polylineFlag = Number(entity.flag || 0);
+
+  // LibreDWG Web บางไฟล์ DWG 2018+ คืนค่า Closed ของ LWPOLYLINE
+  // เป็นบิต 512 แทนบิต 1 แม้ AutoCAD จะแสดง Closed = Yes
+  const closedByFlag =
+    (polylineFlag & 1) === 1 ||
+    (entity.type === "LWPOLYLINE" && (polylineFlag & 512) === 512);
+
+  const closedByCoordinates = pointsAreEqual(
+    vertices[0],
+    vertices[vertices.length - 1],
+  );
+
+  return closedByFlag || closedByCoordinates;
+}
+
+function interpolateBulgeSegment(start, end, bulge) {
+  const x1 = Number(start.x);
+  const y1 = Number(start.y);
+  const x2 = Number(end.x);
+  const y2 = Number(end.y);
+  const safeBulge = Number(bulge || 0);
+
+  if (!Number.isFinite(safeBulge) || Math.abs(safeBulge) < 1e-10) {
+    return [[x1, y1]];
+  }
+
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const chordLength = Math.hypot(dx, dy);
+
+  if (chordLength < 1e-10) {
+    return [[x1, y1]];
+  }
+
+  const includedAngle = 4 * Math.atan(safeBulge);
+  const radius =
+    (chordLength * (1 + safeBulge * safeBulge)) /
+    (4 * Math.abs(safeBulge));
+
+  const midpointX = (x1 + x2) / 2;
+  const midpointY = (y1 + y2) / 2;
+  const halfChord = chordLength / 2;
+  const centerOffset = Math.sqrt(
+    Math.max(0, radius * radius - halfChord * halfChord),
+  );
+  const normalX = -dy / chordLength;
+  const normalY = dx / chordLength;
+  const direction = safeBulge >= 0 ? 1 : -1;
+  const centerX = midpointX + normalX * centerOffset * direction;
+  const centerY = midpointY + normalY * centerOffset * direction;
+  const startAngle = Math.atan2(y1 - centerY, x1 - centerX);
+
+  const segmentCount = Math.max(
+    4,
+    Math.ceil(Math.abs(includedAngle) / (Math.PI / 18)),
+  );
+
+  const points = [];
+
+  for (let index = 0; index < segmentCount; index++) {
+    const ratio = index / segmentCount;
+    const angle = startAngle + includedAngle * ratio;
+
+    points.push([
+      centerX + radius * Math.cos(angle),
+      centerY + radius * Math.sin(angle),
+    ]);
+  }
+
+  return points;
+}
+
+function extractClosedPolylineCoordinates(entity) {
+  const rawVertices = (entity.vertices || []).filter(isFiniteCadPoint);
+
+  if (rawVertices.length < 3) {
+    return [];
+  }
+
+  const vertices = [...rawVertices];
+
+  if (pointsAreEqual(vertices[0], vertices[vertices.length - 1])) {
+    vertices.pop();
+  }
+
+  if (vertices.length < 3) {
+    return [];
+  }
+
+  const coordinates = [];
+
+  for (let index = 0; index < vertices.length; index++) {
+    const currentVertex = vertices[index];
+    const nextVertex = vertices[(index + 1) % vertices.length];
+    const segmentPoints = interpolateBulgeSegment(
+      currentVertex,
+      nextVertex,
+      currentVertex.bulge,
+    );
+
+    coordinates.push(...segmentPoints);
+  }
+
+  coordinates.push([...coordinates[0]]);
+
+  return coordinates;
+}
+
+async function detectDwgCoordinateMode(coordinates) {
+  const allAreLongitudeLatitude = coordinates.every(function (coordinate) {
+    return (
+      coordinate[0] >= -180 &&
+      coordinate[0] <= 180 &&
+      coordinate[1] >= -90 &&
+      coordinate[1] <= 90
+    );
+  });
+
+  if (allAreLongitudeLatitude) {
+    return {
+      type: "WGS84",
+      zone: null,
+    };
+  }
+
+  const looksLikeUtm = coordinates.every(function (coordinate) {
+    return (
+      coordinate[0] >= 100000 &&
+      coordinate[0] <= 900000 &&
+      coordinate[1] >= 0 &&
+      coordinate[1] <= 10000000
+    );
+  });
+
+  if (!looksLikeUtm) {
+    return {
+      type: "UNKNOWN",
+      zone: null,
+    };
+  }
+
+  const zoneAnswer = await window.SRTAAppPopup.prompt(
+    "ไฟล์ DWG ใช้พิกัด UTM Zone ใด? พิมพ์ 47 หรือ 48",
+    "47",
+    "กำหนดระบบพิกัด",
+  );
+
+  if (zoneAnswer === null) {
+    return {
+      type: "CANCELLED",
+      zone: null,
+    };
+  }
+
+  const zone = Number(String(zoneAnswer).trim());
+
+  if (zone !== 47 && zone !== 48) {
+    throw new Error("กรุณาระบุ UTM Zone เป็น 47 หรือ 48 เท่านั้น");
+  }
+
+  return {
+    type: "UTM",
+    zone: zone,
+  };
+}
+
+function utmToLongitudeLatitude(easting, northing, zoneNumber) {
+  const semiMajorAxis = 6378137;
+  const eccentricitySquared = 0.00669438;
+  const scaleFactor = 0.9996;
+
+  const x = Number(easting) - 500000;
+  let y = Number(northing);
+
+  // ระบบนี้รองรับประเทศไทยซึ่งอยู่ซีกโลกเหนือ
+  const longitudeOrigin = (zoneNumber - 1) * 6 - 180 + 3;
+  const eccentricityPrimeSquared =
+    eccentricitySquared / (1 - eccentricitySquared);
+  const meridionalArc = y / scaleFactor;
+  const mu =
+    meridionalArc /
+    (semiMajorAxis *
+      (1 -
+        eccentricitySquared / 4 -
+        (3 * eccentricitySquared * eccentricitySquared) / 64 -
+        (5 * Math.pow(eccentricitySquared, 3)) / 256));
+
+  const e1 =
+    (1 - Math.sqrt(1 - eccentricitySquared)) /
+    (1 + Math.sqrt(1 - eccentricitySquared));
+
+  const phi1 =
+    mu +
+    ((3 * e1) / 2 - (27 * Math.pow(e1, 3)) / 32) * Math.sin(2 * mu) +
+    ((21 * e1 * e1) / 16 - (55 * Math.pow(e1, 4)) / 32) *
+      Math.sin(4 * mu) +
+    ((151 * Math.pow(e1, 3)) / 96) * Math.sin(6 * mu) +
+    ((1097 * Math.pow(e1, 4)) / 512) * Math.sin(8 * mu);
+
+  const n1 =
+    semiMajorAxis /
+    Math.sqrt(1 - eccentricitySquared * Math.sin(phi1) ** 2);
+  const t1 = Math.tan(phi1) ** 2;
+  const c1 = eccentricityPrimeSquared * Math.cos(phi1) ** 2;
+  const r1 =
+    (semiMajorAxis * (1 - eccentricitySquared)) /
+    Math.pow(1 - eccentricitySquared * Math.sin(phi1) ** 2, 1.5);
+  const d = x / (n1 * scaleFactor);
+
+  const latitudeRadians =
+    phi1 -
+    ((n1 * Math.tan(phi1)) / r1) *
+      (d * d / 2 -
+        ((5 + 3 * t1 + 10 * c1 - 4 * c1 * c1 - 9 * eccentricityPrimeSquared) *
+          Math.pow(d, 4)) /
+          24 +
+        ((61 +
+          90 * t1 +
+          298 * c1 +
+          45 * t1 * t1 -
+          252 * eccentricityPrimeSquared -
+          3 * c1 * c1) *
+          Math.pow(d, 6)) /
+          720);
+
+  const longitudeRadians =
+    (d -
+      ((1 + 2 * t1 + c1) * Math.pow(d, 3)) / 6 +
+      ((5 -
+        2 * c1 +
+        28 * t1 -
+        3 * c1 * c1 +
+        8 * eccentricityPrimeSquared +
+        24 * t1 * t1) *
+        Math.pow(d, 5)) /
+        120) /
+    Math.cos(phi1);
+
+  return [
+    longitudeOrigin + (longitudeRadians * 180) / Math.PI,
+    (latitudeRadians * 180) / Math.PI,
+  ];
+}
+
+function convertDwgCoordinatesToWgs84(coordinates, coordinateMode) {
+  if (coordinateMode.type === "WGS84") {
+    return coordinates.map(function (coordinate) {
+      return [Number(coordinate[0]), Number(coordinate[1])];
+    });
+  }
+
+  if (coordinateMode.type === "UTM") {
+    return coordinates.map(function (coordinate) {
+      return utmToLongitudeLatitude(
+        coordinate[0],
+        coordinate[1],
+        coordinateMode.zone,
+      );
+    });
+  }
+
+  throw new Error(
+    "ไม่สามารถระบุระบบพิกัดของ DWG ได้ กรุณาใช้ WGS84 หรือ UTM Zone 47/48",
+  );
+}
+
+async function readDwgAsGeoJSON(file) {
+  const dwgLibrary = await loadDwgLibrary();
+  const dwgReader = await getDwgReader();
+  const fileBuffer = await file.arrayBuffer();
+  let dwgPointer = null;
+
+  try {
+    dwgPointer = dwgReader.dwg_read_data(
+      fileBuffer,
+      dwgLibrary.Dwg_File_Type.DWG,
+    );
+
+    if (!dwgPointer) {
+      throw new Error("ไม่สามารถอ่านโครงสร้างไฟล์ DWG ได้");
+    }
+
+    const database = dwgReader.convert(dwgPointer);
+    const entities = Array.isArray(database.entities)
+      ? database.entities
+      : [];
+
+    const closedPolylines = entities.filter(function (entity) {
+      return (
+        (entity.type === "LWPOLYLINE" || entity.type === "POLYLINE2D") &&
+        !entity.isInPaperSpace &&
+        isClosedDwgPolyline(entity)
+      );
+    });
+
+    if (closedPolylines.length === 0) {
+      throw new Error("ไม่พบ Closed Polyline ใน Model Space ของไฟล์ DWG");
+    }
+
+    if (closedPolylines.length > 1) {
+      throw new Error(
+        "พบ Closed Polyline มากกว่า 1 แปลง กรุณาให้ไฟล์มีรูปแปลงเดียว",
+      );
+    }
+
+    const cadCoordinates = extractClosedPolylineCoordinates(
+      closedPolylines[0],
+    );
+
+    if (cadCoordinates.length < 4) {
+      throw new Error("Closed Polyline มีจุดไม่เพียงพอสำหรับสร้าง Polygon");
+    }
+
+    const coordinateMode = await detectDwgCoordinateMode(cadCoordinates);
+
+    if (coordinateMode.type === "CANCELLED") {
+      return null;
+    }
+
+    const wgs84Coordinates = convertDwgCoordinatesToWgs84(
+      cadCoordinates,
+      coordinateMode,
+    );
+
+    const feature = {
+      type: "Feature",
+      properties: {
+        name: file.name.replace(/\.dwg$/i, ""),
+        source: "DWG",
+        layer: closedPolylines[0].layer || "",
+      },
+      geometry: {
+        type: "Polygon",
+        coordinates: [wgs84Coordinates],
+      },
+    };
+
+    // ตรวจรูปทรงหลังแปลงพิกัดก่อนส่งเข้า Leaflet
+    if (typeof turf !== "undefined" && turf.kinks) {
+      const kinkResult = turf.kinks(feature);
+
+      if (kinkResult.features && kinkResult.features.length > 0) {
+        console.warn("DWG POLYGON HAS SELF INTERSECTIONS:", kinkResult);
+      }
+    }
+
+    return {
+      type: "FeatureCollection",
+      features: [feature],
+    };
+  } finally {
+    if (dwgPointer) {
+      try {
+        dwgReader.dwg_free(dwgPointer);
+      } catch (freeError) {
+        console.warn("FREE DWG MEMORY ERROR:", freeError);
+      }
+    }
+  }
+}
+
+// ====================
 // IMPORT PARCEL FILE
 // ====================
 
@@ -1718,7 +2143,7 @@ function addImportedGeoJSONToProject(geojson, sourceFileName) {
             properties.name ||
             properties.NAME ||
             properties.Name ||
-            sourceFileName.replace(/\.(kml|kmz|zip)$/i, ""),
+            sourceFileName.replace(/\.(kml|kmz|zip|dwg)$/i, ""),
 
           owner: properties.owner || properties.OWNER || "",
 
@@ -1786,6 +2211,8 @@ async function finishImportedLayers(importedLayers, fileTypeLabel) {
 if (importParcelButton && importParcelInput) {
   importParcelButton.addEventListener("click", function () {
     importParcelInput.value = "";
+
+    importParcelInput.accept = ".kml,.kmz,.zip,.dwg";
 
     importParcelInput.click();
   });
@@ -1905,8 +2332,24 @@ if (importParcelButton && importParcelInput) {
         }
 
         fileTypeLabel = "Shapefile";
+      } else if (extension === "dwg") {
+        showAppPopup(
+          "กำลังอ่านไฟล์ DWG กรุณารอสักครู่",
+          "กำลังนำเข้า DWG",
+          "warning",
+        );
+
+        geojson = await readDwgAsGeoJSON(file);
+
+        if (!geojson) {
+          return;
+        }
+
+        fileTypeLabel = "DWG";
       } else {
-        showAppPopup("รองรับเฉพาะไฟล์ KML, KMZ และ Shapefile ZIP");
+        showAppPopup(
+          "รองรับเฉพาะไฟล์ KML, KMZ, Shapefile ZIP และ DWG",
+        );
 
         return;
       }
@@ -2371,7 +2814,11 @@ const exportPdfButton = document.getElementById("export-pdf");
 
 if (exportPdfButton) {
   exportPdfButton.addEventListener("click", async function () {
-    const fileName = prompt("ตั้งชื่อไฟล์ PDF:", "parcel_map");
+    const fileName = await window.SRTAAppPopup.prompt(
+      "กรุณาตั้งชื่อไฟล์ PDF",
+      "parcel_map",
+      "Export แผนที่เป็น PDF",
+    );
 
     if (!fileName) {
       return;
