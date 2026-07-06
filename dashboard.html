@@ -396,6 +396,50 @@
         transform: translateY(-1px);
       }
 
+      .source-file-backfill-box {
+        margin-top: 16px;
+        padding: 14px;
+        border: 1px solid #f0dada;
+        border-radius: 14px;
+        background: #ffffff;
+      }
+
+      .source-file-backfill-title {
+        margin-bottom: 8px;
+        font-size: 16px;
+        font-weight: 800;
+        color: #8b0000;
+      }
+
+      .source-file-backfill-desc {
+        margin-bottom: 12px;
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .source-file-backfill-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 16px;
+        color: #ffffff;
+        background: #8b0000;
+        border: 1px solid #8b0000;
+        border-radius: 10px;
+        font-family: "Sarabun", sans-serif;
+        font-size: 14px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: 0.18s ease;
+      }
+
+      .source-file-backfill-btn:hover {
+        background: #650000;
+        transform: translateY(-1px);
+      }
+
       .source-file-empty {
         color: #9ca3af;
         font-size: 14px;
@@ -843,6 +887,7 @@
     <div class="detail-row"><b>ผู้รับผิดชอบ</b><span>${project.owner || "-"}</span></div>
     <div class="detail-row"><b>จำนวนแปลง</b><span>${parcels.length}</span></div>
     <div class="detail-row"><b>เนื้อที่รวม</b><span>${formatArea(totalArea)}</span></div>
+    ${buildProjectSourceBackfillBox(project, parcels.length)}
     <div class="detail-row"><b>หมายเหตุ</b><span>${project.note || "-"}</span></div>
     <br>
     <a class="btn" href="./index.html?project_id=${project.id}">
@@ -992,6 +1037,172 @@
                 ดาวน์โหลดต้นฉบับ
               </button>
             </div>
+          </div>
+        `;
+      }
+
+
+      async function uploadBackfillSourceFileForProject(projectId) {
+        const project = allProjects.find((item) => item.id === projectId);
+
+        const projectParcels = allParcels.filter(
+          (parcel) => parcel.project_id === projectId,
+        );
+
+        if (projectParcels.length === 0) {
+          alert("โครงการนี้ยังไม่มีแปลงให้ผูกไฟล์ต้นฉบับ");
+          return;
+        }
+
+        const alreadyHasSource = projectParcels.filter(
+          (parcel) => parcel.source_file_path,
+        ).length;
+
+        let message =
+          "จะอัปโหลดไฟล์ต้นฉบับย้อนหลัง และผูกไฟล์นี้ให้แปลงทั้งหมดในโครงการ\n\n" +
+          "โครงการ: " +
+          (project ? project.project_name : "-") +
+          "\n" +
+          "จำนวนแปลง: " +
+          projectParcels.length +
+          " แปลง";
+
+        if (alreadyHasSource > 0) {
+          message +=
+            "\n\nพบแปลงที่มีไฟล์ต้นฉบับอยู่แล้ว " +
+            alreadyHasSource +
+            " แปลง ระบบจะแทนที่ด้วยไฟล์ใหม่";
+        }
+
+        const confirmed = confirm(message + "\n\nต้องการดำเนินการต่อหรือไม่?");
+
+        if (!confirmed) {
+          return;
+        }
+
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.accept = ".dwg,.zip,.kml,.kmz";
+
+        fileInput.onchange = async function () {
+          const file = fileInput.files[0];
+
+          if (!file) {
+            return;
+          }
+
+          try {
+            const safeFileName = cleanDashboardFileName(file.name);
+            const fileType = file.name.includes(".")
+              ? file.name.split(".").pop().toLowerCase()
+              : "";
+
+            const filePath =
+              projectId +
+              "/source/backfill_" +
+              Date.now() +
+              "_" +
+              Math.random().toString(36).slice(2, 8) +
+              "_" +
+              safeFileName;
+
+            const uploadedAt = new Date().toISOString();
+
+            const { data: uploadData, error: uploadError } =
+              await supabaseClient.storage
+                .from("parcel-source-files")
+                .upload(filePath, file, {
+                  cacheControl: "3600",
+                  upsert: false,
+                  contentType: file.type || "application/octet-stream",
+                });
+
+            if (uploadError) {
+              console.error("BACKFILL SOURCE UPLOAD ERROR:", uploadError);
+              alert("อัปโหลดไฟล์ต้นฉบับย้อนหลังไม่สำเร็จ");
+              return;
+            }
+
+            const updateData = {
+              source_file_path: uploadData.path,
+              source_file_name: file.name,
+              source_file_type: fileType,
+              source_file_size: file.size,
+              source_uploaded_at: uploadedAt,
+            };
+
+            const { data: updatedParcels, error: updateError } =
+              await supabaseClient
+                .from("survey_project_parcels")
+                .update(updateData)
+                .eq("project_id", projectId)
+                .select();
+
+            if (updateError) {
+              console.error("BACKFILL SOURCE UPDATE ERROR:", updateError);
+              alert("บันทึกข้อมูลไฟล์ต้นฉบับย้อนหลังไม่สำเร็จ");
+              return;
+            }
+
+            const updatedById = new Map(
+              (updatedParcels || []).map((parcel) => [parcel.id, parcel]),
+            );
+
+            allParcels = allParcels.map((parcel) =>
+              updatedById.has(parcel.id) ? updatedById.get(parcel.id) : parcel,
+            );
+
+            showProjectDetail(project);
+
+            const firstUpdatedParcel = (updatedParcels || [])[0];
+
+            if (firstUpdatedParcel) {
+              showParcelDetail(firstUpdatedParcel);
+            }
+
+            renderProjectList(
+              document.getElementById("projectSearch").value || "",
+            );
+
+            alert(
+              "ผูกไฟล์ต้นฉบับย้อนหลังเรียบร้อยแล้ว\nจำนวนแปลง: " +
+                (updatedParcels || []).length +
+                " แปลง",
+            );
+          } catch (error) {
+            console.error("BACKFILL SOURCE ERROR:", error);
+            alert("เกิดข้อผิดพลาดในการอัปโหลดไฟล์ต้นฉบับย้อนหลัง");
+          }
+        };
+
+        fileInput.click();
+      }
+
+      window.uploadBackfillSourceFileForProject =
+        uploadBackfillSourceFileForProject;
+
+      function buildProjectSourceBackfillBox(project, parcelCount) {
+        const safeProjectId = String(project.id || "")
+          .replace(/\\/g, "\\\\")
+          .replace(/'/g, "\\'");
+
+        return `
+          <div class="source-file-backfill-box">
+            <div class="source-file-backfill-title">
+              ไฟล์ต้นฉบับย้อนหลัง
+            </div>
+            <div class="source-file-backfill-desc">
+              ใช้สำหรับแปลงเดิมที่เคยทำไว้ก่อนมีระบบเก็บไฟล์ต้นฉบับ
+              ระบบจะผูกไฟล์ DWG / ZIP / KML / KMZ ที่เลือกให้แปลงทั้งหมดในโครงการนี้
+              (${parcelCount} แปลง)
+            </div>
+            <button
+              type="button"
+              class="source-file-backfill-btn"
+              onclick="uploadBackfillSourceFileForProject('${safeProjectId}')"
+            >
+              อัปโหลดไฟล์ต้นฉบับย้อนหลัง
+            </button>
           </div>
         `;
       }
