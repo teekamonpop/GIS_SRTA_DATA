@@ -757,6 +757,53 @@ async function uploadParcelDocument(file, projectId, documentType) {
 }
 
 // ====================
+// UPLOAD ORIGINAL SOURCE FILE
+// ====================
+
+async function uploadOriginalSourceFile(file, projectId) {
+  if (!file) {
+    return null;
+  }
+
+  const safeFileName = cleanFileName(file.name);
+  const extension = safeFileName.includes(".")
+    ? safeFileName.split(".").pop().toLowerCase()
+    : "";
+
+  const uniqueName =
+    Date.now() +
+    "_" +
+    Math.random().toString(36).slice(2, 8) +
+    "_" +
+    safeFileName;
+
+  const filePath = projectId + "/source/" + uniqueName;
+  const uploadedAt = new Date().toISOString();
+
+  const { data, error } = await supabase.storage
+    .from("parcel-source-files")
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type || "application/octet-stream",
+    });
+
+  if (error) {
+    console.error("UPLOAD SOURCE FILE ERROR:", error);
+
+    throw error;
+  }
+
+  return {
+    path: data.path,
+    name: file.name,
+    type: extension,
+    size: file.size,
+    uploadedAt: uploadedAt,
+  };
+}
+
+// ====================
 // COVER PHOTO
 // ====================
 
@@ -981,6 +1028,8 @@ async function saveDrawings() {
 
       layer._calculatedAreaSqm = calculatedArea;
 
+      const sourceFileInfo = layer._sourceFileInfo || {};
+
       features.push({
         project_id: currentProjectId,
         parcel_name: props.name || "",
@@ -992,6 +1041,11 @@ async function saveDrawings() {
         calculated_area_sqm: calculatedArea,
         area_source: areaSource,
         geojson: geojson,
+        source_file_path: sourceFileInfo.path || null,
+        source_file_name: sourceFileInfo.name || null,
+        source_file_type: sourceFileInfo.type || null,
+        source_file_size: sourceFileInfo.size || null,
+        source_uploaded_at: sourceFileInfo.uploadedAt || null,
         cover_photo_path: coverPhotoPath,
 
         joint_record_path: jointRecordPath,
@@ -1097,6 +1151,14 @@ async function loadDrawings() {
             (layer._officialAreaSqm !== null
               ? "ORIGINAL_FILE"
               : "WEB_CALCULATED");
+
+          layer._sourceFileInfo = {
+            path: item.source_file_path || null,
+            name: item.source_file_name || null,
+            type: item.source_file_type || null,
+            size: item.source_file_size || null,
+            uploadedAt: item.source_uploaded_at || null,
+          };
 
           layer._coverPhotoPath = item.cover_photo_path || null;
 
@@ -1442,6 +1504,7 @@ map.on(L.Draw.Event.CREATED, async function (event) {
   if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
     layer._officialAreaSqm = null;
     layer._areaSource = "WEB_DRAW";
+    layer._sourceFileInfo = {};
   }
 
   // ====================
@@ -2226,93 +2289,61 @@ async function readDwgAsGeoJSON(file) {
       throw new Error("ไม่พบ Closed Polyline ใน Model Space ของไฟล์ DWG");
     }
 
-    const parcelCandidates = [];
-
-    closedPolylines.forEach(function (polyline, index) {
-      const cadCoordinates = extractClosedPolylineCoordinates(polyline);
-
-      if (cadCoordinates.length < 4) {
-        console.warn(
-          "ข้าม Closed Polyline เพราะจุดไม่เพียงพอ:",
-          index + 1,
-          polyline,
-        );
-
-        return;
-      }
-
-      parcelCandidates.push({
-        entity: polyline,
-        cadCoordinates: cadCoordinates,
-        originalArea: getDwgEntityArea(polyline),
-      });
-    });
-
-    if (parcelCandidates.length === 0) {
-      throw new Error("Closed Polyline ที่พบมีจุดไม่เพียงพอสำหรับสร้าง Polygon");
+    if (closedPolylines.length > 1) {
+      throw new Error(
+        "พบ Closed Polyline มากกว่า 1 แปลง กรุณาให้ไฟล์มีรูปแปลงเดียว",
+      );
     }
 
-    const coordinateMode = await detectDwgCoordinateMode(
-      parcelCandidates[0].cadCoordinates,
+    const selectedPolyline = closedPolylines[0];
+    const originalDwgArea = getDwgEntityArea(selectedPolyline);
+
+    const cadCoordinates = extractClosedPolylineCoordinates(
+      selectedPolyline,
     );
+
+    if (cadCoordinates.length < 4) {
+      throw new Error("Closed Polyline มีจุดไม่เพียงพอสำหรับสร้าง Polygon");
+    }
+
+    const coordinateMode = await detectDwgCoordinateMode(cadCoordinates);
 
     if (coordinateMode.type === "CANCELLED") {
       return null;
     }
 
-    const baseName = file.name.replace(/\.dwg$/i, "");
-
-    const features = parcelCandidates.map(function (item, index) {
-      const wgs84Coordinates = convertDwgCoordinatesToWgs84(
-        item.cadCoordinates,
-        coordinateMode,
-      );
-
-      const feature = {
-        type: "Feature",
-        properties: {
-          name: baseName + " - แปลงที่ " + (index + 1),
-          source: "DWG",
-          layer: item.entity.layer || "",
-          official_area_sqm: item.originalArea,
-          area_source: "DWG",
-          cad_entity_type: item.entity.type || "",
-          cad_index: index + 1,
-        },
-        geometry: {
-          type: "Polygon",
-          coordinates: [wgs84Coordinates],
-        },
-      };
-
-      // ตรวจรูปทรงหลังแปลงพิกัดก่อนส่งเข้า Leaflet
-      if (typeof turf !== "undefined" && turf.kinks) {
-        const kinkResult = turf.kinks(feature);
-
-        if (kinkResult.features && kinkResult.features.length > 0) {
-          console.warn(
-            "DWG POLYGON HAS SELF INTERSECTIONS:",
-            index + 1,
-            kinkResult,
-          );
-        }
-      }
-
-      return feature;
-    });
-
-    console.log(
-      "DWG CLOSED POLYLINE IMPORT:",
-      "พบ",
-      closedPolylines.length,
-      "เส้น / นำเข้าได้",
-      features.length,
-      "แปลง",
+    const wgs84Coordinates = convertDwgCoordinatesToWgs84(
+      cadCoordinates,
+      coordinateMode,
     );
+
+    const feature = {
+      type: "Feature",
+      properties: {
+        name: file.name.replace(/\.dwg$/i, ""),
+        source: "DWG",
+        layer: selectedPolyline.layer || "",
+        official_area_sqm: originalDwgArea,
+        area_source: "DWG",
+      },
+      geometry: {
+        type: "Polygon",
+        coordinates: [wgs84Coordinates],
+      },
+    };
+
+    // ตรวจรูปทรงหลังแปลงพิกัดก่อนส่งเข้า Leaflet
+    if (typeof turf !== "undefined" && turf.kinks) {
+      const kinkResult = turf.kinks(feature);
+
+      if (kinkResult.features && kinkResult.features.length > 0) {
+        console.warn("DWG POLYGON HAS SELF INTERSECTIONS:", kinkResult);
+      }
+    }
 
     return {
       type: "FeatureCollection",
-      features: features,
+      features: [feature],
     };
   } finally {
     if (dwgPointer) {
@@ -2333,7 +2364,7 @@ const importParcelButton = document.getElementById("import-parcel-file");
 
 const importParcelInput = document.getElementById("import-parcel-input");
 
-function addImportedGeoJSONToProject(geojson, sourceFileName) {
+function addImportedGeoJSONToProject(geojson, sourceFileName, sourceFileInfo = null) {
   const importedLayers = [];
 
   L.geoJSON(geojson, {
@@ -2401,6 +2432,7 @@ function addImportedGeoJSONToProject(geojson, sourceFileName) {
       layer._areaSource =
         officialArea !== null ? areaSource || "ORIGINAL_FILE" : "WEB_CALCULATED";
 
+      layer._sourceFileInfo = sourceFileInfo || {};
       layer._documentFiles = {};
       layer._documentPaths = {};
 
@@ -2645,7 +2677,22 @@ if (importParcelButton && importParcelInput) {
         return;
       }
 
-      const importedLayers = addImportedGeoJSONToProject(geojson, file.name);
+      showAppPopup(
+        "กำลังอัปโหลดไฟล์ต้นฉบับ กรุณารอสักครู่",
+        "บันทึกไฟล์ต้นฉบับ",
+        "warning",
+      );
+
+      const sourceFileInfo = await uploadOriginalSourceFile(
+        file,
+        currentProjectId,
+      );
+
+      const importedLayers = addImportedGeoJSONToProject(
+        geojson,
+        file.name,
+        sourceFileInfo,
+      );
 
       await finishImportedLayers(importedLayers, fileTypeLabel);
     } catch (error) {
