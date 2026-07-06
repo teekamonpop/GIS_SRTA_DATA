@@ -821,6 +821,39 @@
         SUPABASE_KEY,
       );
 
+
+      function showDashboardPopup(message, title = "แจ้งเตือน", type = "info") {
+        if (window.SRTAAppPopup && typeof window.SRTAAppPopup.alert === "function") {
+          return window.SRTAAppPopup.alert({
+            title: title,
+            message: message,
+            type: type,
+            confirmText: "ตกลง",
+          });
+        }
+
+        alert(message);
+        return Promise.resolve(true);
+      }
+
+      function showDashboardConfirm(
+        message,
+        title = "ยืนยันการทำรายการ",
+        type = "warning",
+      ) {
+        if (window.SRTAAppPopup && typeof window.SRTAAppPopup.confirm === "function") {
+          return window.SRTAAppPopup.confirm({
+            title: title,
+            message: message,
+            type: type,
+            confirmText: "ยืนยัน",
+            cancelText: "ยกเลิก",
+          });
+        }
+
+        return Promise.resolve(confirm(message));
+      }
+
       const map = L.map("dashboardMap").setView([13.7563, 100.5018], 6);
 
       L.tileLayer("https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {
@@ -955,7 +988,11 @@
 
       async function downloadParcelSourceFile(filePath, fileName) {
         if (!filePath) {
-          alert("แปลงนี้ยังไม่มีไฟล์ต้นฉบับ");
+          await showDashboardPopup(
+            "แปลงนี้ยังไม่มีไฟล์ต้นฉบับ",
+            "ไม่มีไฟล์ต้นฉบับ",
+            "warning",
+          );
           return;
         }
 
@@ -968,7 +1005,11 @@
 
           if (error) {
             console.error("CREATE SOURCE SIGNED URL ERROR:", error);
-            alert("ไม่สามารถดาวน์โหลดไฟล์ต้นฉบับได้");
+            await showDashboardPopup(
+              "ไม่สามารถดาวน์โหลดไฟล์ต้นฉบับได้",
+              "เกิดข้อผิดพลาด",
+              "error",
+            );
             return;
           }
 
@@ -983,7 +1024,11 @@
           document.body.removeChild(link);
         } catch (error) {
           console.error("DOWNLOAD SOURCE FILE ERROR:", error);
-          alert("เกิดข้อผิดพลาดในการดาวน์โหลดไฟล์ต้นฉบับ");
+          await showDashboardPopup(
+            "เกิดข้อผิดพลาดในการดาวน์โหลดไฟล์ต้นฉบับ",
+            "เกิดข้อผิดพลาด",
+            "error",
+          );
         }
       }
 
@@ -1050,7 +1095,11 @@
         );
 
         if (projectParcels.length === 0) {
-          alert("โครงการนี้ยังไม่มีแปลงให้ผูกไฟล์ต้นฉบับ");
+          await showDashboardPopup(
+            "โครงการนี้ยังไม่มีแปลงให้ผูกไฟล์ต้นฉบับ",
+            "ไม่มีข้อมูลแปลง",
+            "warning",
+          );
           return;
         }
 
@@ -1074,7 +1123,11 @@
             " แปลง ระบบจะแทนที่ด้วยไฟล์ใหม่";
         }
 
-        const confirmed = confirm(message + "\n\nต้องการดำเนินการต่อหรือไม่?");
+        const confirmed = await showDashboardConfirm(
+          message.replace(/\n/g, "<br>") + "<br><br>ต้องการดำเนินการต่อหรือไม่?",
+          "อัปโหลดไฟล์ต้นฉบับย้อนหลัง",
+          "warning",
+        );
 
         if (!confirmed) {
           return;
@@ -1119,7 +1172,11 @@
 
             if (uploadError) {
               console.error("BACKFILL SOURCE UPLOAD ERROR:", uploadError);
-              alert("อัปโหลดไฟล์ต้นฉบับย้อนหลังไม่สำเร็จ");
+              await showDashboardPopup(
+                "อัปโหลดไฟล์ต้นฉบับย้อนหลังไม่สำเร็จ",
+                "เกิดข้อผิดพลาด",
+                "error",
+              );
               return;
             }
 
@@ -1140,7 +1197,11 @@
 
             if (updateError) {
               console.error("BACKFILL SOURCE UPDATE ERROR:", updateError);
-              alert("บันทึกข้อมูลไฟล์ต้นฉบับย้อนหลังไม่สำเร็จ");
+              await showDashboardPopup(
+                "บันทึกข้อมูลไฟล์ต้นฉบับย้อนหลังไม่สำเร็จ",
+                "เกิดข้อผิดพลาด",
+                "error",
+              );
               return;
             }
 
@@ -1164,14 +1225,20 @@
               document.getElementById("projectSearch").value || "",
             );
 
-            alert(
-              "ผูกไฟล์ต้นฉบับย้อนหลังเรียบร้อยแล้ว\nจำนวนแปลง: " +
+            await showDashboardPopup(
+              "ผูกไฟล์ต้นฉบับย้อนหลังเรียบร้อยแล้ว<br>จำนวนแปลง: " +
                 (updatedParcels || []).length +
                 " แปลง",
+              "สำเร็จ",
+              "success",
             );
           } catch (error) {
             console.error("BACKFILL SOURCE ERROR:", error);
-            alert("เกิดข้อผิดพลาดในการอัปโหลดไฟล์ต้นฉบับย้อนหลัง");
+            await showDashboardPopup(
+              "เกิดข้อผิดพลาดในการอัปโหลดไฟล์ต้นฉบับย้อนหลัง",
+              "เกิดข้อผิดพลาด",
+              "error",
+            );
           }
         };
 
