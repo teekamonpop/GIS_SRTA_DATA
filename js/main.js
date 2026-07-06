@@ -2226,61 +2226,93 @@ async function readDwgAsGeoJSON(file) {
       throw new Error("ไม่พบ Closed Polyline ใน Model Space ของไฟล์ DWG");
     }
 
-    if (closedPolylines.length > 1) {
-      throw new Error(
-        "พบ Closed Polyline มากกว่า 1 แปลง กรุณาให้ไฟล์มีรูปแปลงเดียว",
-      );
+    const parcelCandidates = [];
+
+    closedPolylines.forEach(function (polyline, index) {
+      const cadCoordinates = extractClosedPolylineCoordinates(polyline);
+
+      if (cadCoordinates.length < 4) {
+        console.warn(
+          "ข้าม Closed Polyline เพราะจุดไม่เพียงพอ:",
+          index + 1,
+          polyline,
+        );
+
+        return;
+      }
+
+      parcelCandidates.push({
+        entity: polyline,
+        cadCoordinates: cadCoordinates,
+        originalArea: getDwgEntityArea(polyline),
+      });
+    });
+
+    if (parcelCandidates.length === 0) {
+      throw new Error("Closed Polyline ที่พบมีจุดไม่เพียงพอสำหรับสร้าง Polygon");
     }
 
-    const selectedPolyline = closedPolylines[0];
-    const originalDwgArea = getDwgEntityArea(selectedPolyline);
-
-    const cadCoordinates = extractClosedPolylineCoordinates(
-      selectedPolyline,
+    const coordinateMode = await detectDwgCoordinateMode(
+      parcelCandidates[0].cadCoordinates,
     );
-
-    if (cadCoordinates.length < 4) {
-      throw new Error("Closed Polyline มีจุดไม่เพียงพอสำหรับสร้าง Polygon");
-    }
-
-    const coordinateMode = await detectDwgCoordinateMode(cadCoordinates);
 
     if (coordinateMode.type === "CANCELLED") {
       return null;
     }
 
-    const wgs84Coordinates = convertDwgCoordinatesToWgs84(
-      cadCoordinates,
-      coordinateMode,
-    );
+    const baseName = file.name.replace(/\.dwg$/i, "");
 
-    const feature = {
-      type: "Feature",
-      properties: {
-        name: file.name.replace(/\.dwg$/i, ""),
-        source: "DWG",
-        layer: selectedPolyline.layer || "",
-        official_area_sqm: originalDwgArea,
-        area_source: "DWG",
-      },
-      geometry: {
-        type: "Polygon",
-        coordinates: [wgs84Coordinates],
-      },
-    };
+    const features = parcelCandidates.map(function (item, index) {
+      const wgs84Coordinates = convertDwgCoordinatesToWgs84(
+        item.cadCoordinates,
+        coordinateMode,
+      );
 
-    // ตรวจรูปทรงหลังแปลงพิกัดก่อนส่งเข้า Leaflet
-    if (typeof turf !== "undefined" && turf.kinks) {
-      const kinkResult = turf.kinks(feature);
+      const feature = {
+        type: "Feature",
+        properties: {
+          name: baseName + " - แปลงที่ " + (index + 1),
+          source: "DWG",
+          layer: item.entity.layer || "",
+          official_area_sqm: item.originalArea,
+          area_source: "DWG",
+          cad_entity_type: item.entity.type || "",
+          cad_index: index + 1,
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [wgs84Coordinates],
+        },
+      };
 
-      if (kinkResult.features && kinkResult.features.length > 0) {
-        console.warn("DWG POLYGON HAS SELF INTERSECTIONS:", kinkResult);
+      // ตรวจรูปทรงหลังแปลงพิกัดก่อนส่งเข้า Leaflet
+      if (typeof turf !== "undefined" && turf.kinks) {
+        const kinkResult = turf.kinks(feature);
+
+        if (kinkResult.features && kinkResult.features.length > 0) {
+          console.warn(
+            "DWG POLYGON HAS SELF INTERSECTIONS:",
+            index + 1,
+            kinkResult,
+          );
+        }
       }
-    }
+
+      return feature;
+    });
+
+    console.log(
+      "DWG CLOSED POLYLINE IMPORT:",
+      "พบ",
+      closedPolylines.length,
+      "เส้น / นำเข้าได้",
+      features.length,
+      "แปลง",
+    );
 
     return {
       type: "FeatureCollection",
-      features: [feature],
+      features: features,
     };
   } finally {
     if (dwgPointer) {
